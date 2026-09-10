@@ -8,7 +8,8 @@
   before it is called validated.
 - [Fixture schema](fixture_schema.md): the HDF5 layout consumed by the Julia
   harness and produced by `python/torchlight_ref`.
-- [Results](../../benchmarks/results/): machine-generated acceptance reports
-  (Markdown and JSON) for every fixture run.
+- [Results](../results/): committed snapshots of the machine-generated
+  acceptance reports (Markdown and JSON, with fixture hashes and tested
+  versions), one directory per run date.
 - Contributor conventions: [CONTRIBUTING.md](../../CONTRIBUTING.md) and
   [AGENTS.md](../../AGENTS.md).

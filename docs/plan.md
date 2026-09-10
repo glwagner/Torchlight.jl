@@ -4,8 +4,9 @@ Revision 2, 10 September 2026. Repository: `glwagner/Torchlight.jl` (created,
 private). This revision replaces the 10 September draft. It records (a) what the
 research into Lux.jl, Luximm.jl, Reactant.jl and the cited GitHub work changed,
 (b) what has now actually been executed, and (c) what remains planned. Items
-marked **Executed** are backed by code and reports in this repository; items
-marked **Planned** are not.
+marked **Executed** are backed by code in this repository and by the report
+snapshots committed under `docs/results/2026-09-10/`; items marked
+**Planned** are not.
 
 The central question is unchanged: **given PyTorch or JAX source code and, when
 available, a checkpoint, what is the quickest route to a Julia-usable model with

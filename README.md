@@ -34,8 +34,9 @@ reference is an independent reconstruction, not the authors' code.
 | full (paper size) Float64 | accepted | all backends, Reactant compile + run timed |
 | full Float32 | **not accepted** | Adam first-step update fails the frozen Float32 tolerance on 102 of 1,214,876 update components (15/20/20/18/29 across the five weight blocks; max-abs 6.9e-6) and on 1 post-update parameter. All 102 failing components have reference gradients below 10³·ε, which is *consistent with* Float32 ill-conditioning of `g/(|g|+ε)`; the Float64 fixture passes the same check. An independent control (collaborating reviewer) that feeds the exact PyTorch-exported Float32 gradients into `Optimisers.Adam` reproduces PyTorch's parameters and update to 3.7e-9 with zero failures, so the update rule matches and the mismatch comes from Float32 gradient differences amplified by `g/(|g|+ε)`. Retained as a failure under the frozen tolerance, not loosened. |
 
-Machine-generated reports live in `benchmarks/results/` (run locally; not
-committed). See [docs/plan.md](docs/plan.md) for the full plan, decisions, and
+Machine-generated reports for this run are committed under
+`docs/results/2026-09-10/` (Markdown and JSON with fixture hashes and tested
+versions); `benchmarks/results/` holds uncommitted scratch reruns. See [docs/plan.md](docs/plan.md) for the full plan, decisions, and
 findings, and [docs/src/](docs/src/index.md) for the porting guide, review
 checklist, and fixture schema.
 
