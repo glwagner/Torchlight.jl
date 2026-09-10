@@ -59,6 +59,15 @@ end
     @test_throws Exception Torchlight.map_parameters(template, source,
         [("w", (:weight,), identity), ("w", (:weight,), identity)])
     @test_throws Exception Torchlight.map_parameters(template, source, [])
+    # A scalar and a zero-dimensional array have the same size/eltype, but
+    # a transform must preserve an array leaf in the Lux parameter tree.
+    scalar_template = (; weight = fill(1.0))
+    scalar_source = Dict("w" => fill(2.0))
+    mapped_scalar, _ = Torchlight.map_parameters(scalar_template, scalar_source,
+        [("w", (:weight,), identity)])
+    @test mapped_scalar.weight isa AbstractArray{Float64,0}
+    @test_throws Exception Torchlight.map_parameters(scalar_template, scalar_source,
+        [("w", (:weight,), a -> a[])])
 end
 
 function review_fixture(path; defect = :none)
