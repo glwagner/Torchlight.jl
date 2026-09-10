@@ -27,9 +27,11 @@ fixture_path = isempty(ARGS) ? joinpath(@__DIR__, "..", "test", "fixtures", "col
 
 # 1. Read what PyTorch exported: inputs, parameters, outputs, derivatives.
 fx = read_fixture(fixture_path)
+fx.meta["mode"] == "eval" || error("this walk-through uses test mode; fixture is mode=$(fx.meta["mode"])")
 widths = Int.(fx.meta["widths"])
 T = Torchlight.element_type(fx)
 println(fx)
+results = ComparisonResult[]          # every comparison is collected and gated at the end
 
 # 2. Write the same architecture in Lux.  Dropout is identity in test mode,
 #    exactly as F.dropout(training=False).
@@ -60,18 +62,20 @@ println(report)
 # 4. Same inputs in, same outputs out?  Inputs arrive as (features, batch),
 #    which is Lux's convention already.
 y, _ = model(fx.input, ps, st)
-println(compare(y, fx.output; name = "forward"))
+push!(results, compare(y, fx.output; name = "forward"))
 
 # 5. Same derivatives?  Differentiate the same mean-squared loss with Zygote
 #    and compare ∂L/∂x and every block of ∂L/∂θ against PyTorch autograd.
 mse(y, t) = sum(abs2, y .- t) / length(y)
 loss(x, ps) = mse(first(model(x, ps, st)), fx.target)
 gx, gps = Zygote.gradient(loss, fx.input, ps)
-println(compare([T(loss(fx.input, ps))], [fx.derivatives["loss"]]; name = "loss"))
-println(compare(gx, fx.derivatives["grad_input"]; name = "grad_input"))
-for r in compare_tree(gps, fx.derivatives["grad_params"], mapping)
-    println(r)
-end
+push!(results, compare([T(loss(fx.input, ps))], [fx.derivatives["loss"]]; name = "loss"))
+push!(results, compare(gx, fx.derivatives["grad_input"]; name = "grad_input"))
+append!(results, compare_tree(gps, fx.derivatives["grad_params"], mapping))
+foreach(println, results)
+nfail = count(r -> !r.passed, results)
+nfail == 0 || error("$nfail of $(length(results)) comparisons failed")
+println("all $(length(results)) comparisons passed")
 
 # 6. The model is an ordinary Lux Chain: editable, trainable, compilable with
 #    Reactant.  cases/column_mlp/validate.jl runs the full acceptance suite

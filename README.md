@@ -60,9 +60,11 @@ domain outputs. It is not a Flax checkpoint converter.
 `examples/column_mlp_translation.jl` is the shortest end-to-end walk-through:
 read the PyTorch fixture, write the same architecture as a Lux `Chain`, load
 the PyTorch weights with coverage checks, and compare outputs and gradients.
-It runs from a fresh clone on the committed tiny fixture:
+It runs from a fresh clone on the committed tiny fixture and exits nonzero if
+any comparison fails:
 
 ```bash
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
 julia --project=. examples/column_mlp_translation.jl
 ```
 
