@@ -85,6 +85,8 @@ def export_jax_reference(input_path, output_path):
             raise ValueError("only an identity output activation is supported")
         if _text(attrs["loss"]) != "mse_mean":
             raise ValueError("only loss=mse_mean is supported")
+        if _text(attrs["dense_weight_layout"]) != "(out, in)":
+            raise ValueError("this adapter requires dense_weight_layout=(out, in)")
         raw_keys = attrs["layer_keys"]
         layer_keys = (json.loads(_text(raw_keys)) if isinstance(raw_keys, (str, bytes))
                       else [_text(k) for k in raw_keys])
@@ -167,6 +169,7 @@ def export_jax_reference(input_path, output_path):
                 meta.attrs["backend"] = "cpu"
                 meta.attrs["matmul_precision"] = "highest"
                 meta.attrs["jax_enable_x64"] = True
+                meta.attrs["dense_weight_layout"] = "(out, in)"
                 meta.attrs["loss_definition"] = "mean((output - target)^2), all elements"
                 meta.attrs["training_status"] = "not_tested"
                 for key in ("input", "target", "state_dict", "probes"):

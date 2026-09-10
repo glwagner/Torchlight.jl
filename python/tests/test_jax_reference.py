@@ -30,6 +30,7 @@ def make_fixture(path, dtype):
                           model_id="column_mlp_tiny", seed=48, dtype=np.dtype(dtype).name,
                           mode="eval", widths=widths, n_layers=3, activation="tanh",
                           output_activation="identity", dropout_p=0.1, loss="mse_mean",
+                          dense_weight_layout="(out, in)",
                           layer_keys=[f"layers.{i}" for i in range(3)])
         f["input"], f["target"] = x, target
         for key, value in arrays.items():
@@ -100,6 +101,7 @@ class JaxReferenceTests(unittest.TestCase):
     def test_rejects_unsupported_semantics(self):
         mutations = [("mode", "train"), ("activation", "relu"),
                      ("output_activation", "tanh"), ("loss", "mse_sum"),
+                     ("dense_weight_layout", "(in, out)"),
                      ("widths", [7, 12, 5, 3]), ("n_layers", 4),
                      ("layer_keys", ["layers.0", "layers.0", "layers.2"])]
         for key, value in mutations:
