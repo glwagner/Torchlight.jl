@@ -1,0 +1,312 @@
+{
+  "recorded_on": "2026-09-10",
+  "comparison_artifact_sha256": "d49e1f95fb206df61ca413e84b803b96260d0388b65e151c2bee9db6186e6cc9",
+  "calibration_artifact_sha256": "b19371219eaf1ea99be741b0a8f8e6473831cb3c55f2d4d8ab7333c87cbdb0c0",
+  "note": "Original early-session evidence, before the fixture metadata and domain extensions were finalized. Artifact values are unchanged; these fixture hashes are not the later acceptance-snapshot hashes.",
+  "fixtures": [
+    {
+      "source_file": "column_mlp_full_float32.h5",
+      "source_sha256": "42ccd4d616eaf076ad3bba5e97455bd1b1b7e95cf0be96f15ae0eeb43fcd3d8b",
+      "jax_file": "column_mlp_full_float32_jax.h5",
+      "jax_sha256": "f689e7429ba2622d0d2ee781a00a7c3e02432e9953fac9d68d923d077e7a2ee6",
+      "source_metadata": {
+        "activation": "tanh",
+        "dropout_p": 0.1,
+        "dtype": "float32",
+        "input_layout": "(batch, features)",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2",
+          "layers.3",
+          "layers.4"
+        ],
+        "loss": "mse_mean",
+        "mode": "eval",
+        "model_id": "column_mlp_full",
+        "n_layers": 5,
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_framework": "torch",
+        "source_version": "2.14.0",
+        "widths": [
+          420,
+          512,
+          512,
+          512,
+          512,
+          412
+        ]
+      },
+      "jax_metadata": {
+        "activation": "tanh",
+        "backend": "cpu",
+        "dropout_p": 0.1,
+        "dtype": "float32",
+        "input_layout": "(batch, features)",
+        "jax_enable_x64": true,
+        "jax_version": "0.11.1",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2",
+          "layers.3",
+          "layers.4"
+        ],
+        "loss": "mse_mean",
+        "loss_definition": "mean((output - target)^2), all elements",
+        "mode": "eval",
+        "model_id": "column_mlp_full",
+        "n_layers": 5,
+        "numpy_version": "2.5.3",
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_commit": "adapter-sha256:c3d8f0bd3c2210a9b8b42d79d1855ba8d9ee64fb97aa26c9a5bfa17cc20af2a1",
+        "source_fixture_sha256": "42ccd4d616eaf076ad3bba5e97455bd1b1b7e95cf0be96f15ae0eeb43fcd3d8b",
+        "source_framework": "jax",
+        "source_version": "0.11.1",
+        "training_status": "not_tested",
+        "upstream_source_commit": "unknown",
+        "upstream_source_framework": "torch",
+        "widths": [
+          420,
+          512,
+          512,
+          512,
+          512,
+          412
+        ]
+      }
+    },
+    {
+      "source_file": "column_mlp_full_float64.h5",
+      "source_sha256": "2110f87d3d7eaae4103f7777038febccea5d99405689ea3e5ef8f672fecacbd2",
+      "jax_file": "column_mlp_full_float64_jax.h5",
+      "jax_sha256": "ef142d669f879f3b00ff6bb159d72ba3bb82dc7baf3efb8f9e45a37457bf194c",
+      "source_metadata": {
+        "activation": "tanh",
+        "dropout_p": 0.1,
+        "dtype": "float64",
+        "input_layout": "(batch, features)",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2",
+          "layers.3",
+          "layers.4"
+        ],
+        "loss": "mse_mean",
+        "mode": "eval",
+        "model_id": "column_mlp_full",
+        "n_layers": 5,
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_framework": "torch",
+        "source_version": "2.14.0",
+        "widths": [
+          420,
+          512,
+          512,
+          512,
+          512,
+          412
+        ]
+      },
+      "jax_metadata": {
+        "activation": "tanh",
+        "backend": "cpu",
+        "dropout_p": 0.1,
+        "dtype": "float64",
+        "input_layout": "(batch, features)",
+        "jax_enable_x64": true,
+        "jax_version": "0.11.1",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2",
+          "layers.3",
+          "layers.4"
+        ],
+        "loss": "mse_mean",
+        "loss_definition": "mean((output - target)^2), all elements",
+        "mode": "eval",
+        "model_id": "column_mlp_full",
+        "n_layers": 5,
+        "numpy_version": "2.5.3",
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_commit": "adapter-sha256:c3d8f0bd3c2210a9b8b42d79d1855ba8d9ee64fb97aa26c9a5bfa17cc20af2a1",
+        "source_fixture_sha256": "2110f87d3d7eaae4103f7777038febccea5d99405689ea3e5ef8f672fecacbd2",
+        "source_framework": "jax",
+        "source_version": "0.11.1",
+        "training_status": "not_tested",
+        "upstream_source_commit": "unknown",
+        "upstream_source_framework": "torch",
+        "widths": [
+          420,
+          512,
+          512,
+          512,
+          512,
+          412
+        ]
+      }
+    },
+    {
+      "source_file": "column_mlp_tiny_float32.h5",
+      "source_sha256": "493293ec0dbf42a85f210b738d7559c6a0ffd3c40f9ca9c4fe2ab84d44b5c3ba",
+      "jax_file": "column_mlp_tiny_float32_jax.h5",
+      "jax_sha256": "3f5c13d6e850f9b1b14ed078a7d84d1c90b85bb98500d8600c2f6e4c7e902753",
+      "source_metadata": {
+        "activation": "tanh",
+        "dropout_p": 0.1,
+        "dtype": "float32",
+        "input_layout": "(batch, features)",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2"
+        ],
+        "loss": "mse_mean",
+        "mode": "eval",
+        "model_id": "column_mlp_tiny",
+        "n_layers": 3,
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_framework": "torch",
+        "source_version": "2.14.0",
+        "widths": [
+          7,
+          11,
+          5,
+          3
+        ]
+      },
+      "jax_metadata": {
+        "activation": "tanh",
+        "backend": "cpu",
+        "dropout_p": 0.1,
+        "dtype": "float32",
+        "input_layout": "(batch, features)",
+        "jax_enable_x64": true,
+        "jax_version": "0.11.1",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2"
+        ],
+        "loss": "mse_mean",
+        "loss_definition": "mean((output - target)^2), all elements",
+        "mode": "eval",
+        "model_id": "column_mlp_tiny",
+        "n_layers": 3,
+        "numpy_version": "2.5.3",
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_commit": "adapter-sha256:c3d8f0bd3c2210a9b8b42d79d1855ba8d9ee64fb97aa26c9a5bfa17cc20af2a1",
+        "source_fixture_sha256": "493293ec0dbf42a85f210b738d7559c6a0ffd3c40f9ca9c4fe2ab84d44b5c3ba",
+        "source_framework": "jax",
+        "source_version": "0.11.1",
+        "training_status": "not_tested",
+        "upstream_source_commit": "unknown",
+        "upstream_source_framework": "torch",
+        "widths": [
+          7,
+          11,
+          5,
+          3
+        ]
+      }
+    },
+    {
+      "source_file": "column_mlp_tiny_float64.h5",
+      "source_sha256": "00a49c44ae24034f49872302ae9ba30c5a262872cb983d5bcd2d0bdd8ad9e35c",
+      "jax_file": "column_mlp_tiny_float64_jax.h5",
+      "jax_sha256": "57492c97c7916cdbbf8a950f327b2bfd08affbff4b763bd04fc8700d92e1021e",
+      "source_metadata": {
+        "activation": "tanh",
+        "dropout_p": 0.1,
+        "dtype": "float64",
+        "input_layout": "(batch, features)",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2"
+        ],
+        "loss": "mse_mean",
+        "mode": "eval",
+        "model_id": "column_mlp_tiny",
+        "n_layers": 3,
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_framework": "torch",
+        "source_version": "2.14.0",
+        "widths": [
+          7,
+          11,
+          5,
+          3
+        ]
+      },
+      "jax_metadata": {
+        "activation": "tanh",
+        "backend": "cpu",
+        "dropout_p": 0.1,
+        "dtype": "float64",
+        "input_layout": "(batch, features)",
+        "jax_enable_x64": true,
+        "jax_version": "0.11.1",
+        "layer_keys": [
+          "layers.0",
+          "layers.1",
+          "layers.2"
+        ],
+        "loss": "mse_mean",
+        "loss_definition": "mean((output - target)^2), all elements",
+        "mode": "eval",
+        "model_id": "column_mlp_tiny",
+        "n_layers": 3,
+        "numpy_version": "2.5.3",
+        "output_activation": "identity",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "python_version": "3.14.7",
+        "schema_version": 1,
+        "seed": 20260910,
+        "source_commit": "adapter-sha256:c3d8f0bd3c2210a9b8b42d79d1855ba8d9ee64fb97aa26c9a5bfa17cc20af2a1",
+        "source_fixture_sha256": "00a49c44ae24034f49872302ae9ba30c5a262872cb983d5bcd2d0bdd8ad9e35c",
+        "source_framework": "jax",
+        "source_version": "0.11.1",
+        "training_status": "not_tested",
+        "upstream_source_commit": "unknown",
+        "upstream_source_framework": "torch",
+        "widths": [
+          7,
+          11,
+          5,
+          3
+        ]
+      }
+    }
+  ]
+}

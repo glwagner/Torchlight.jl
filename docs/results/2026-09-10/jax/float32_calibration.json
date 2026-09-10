@@ -1,0 +1,35 @@
+[
+  {
+    "quantity": "derivatives/jvp_output_from_params",
+    "pytorch_float32": {
+      "max_abs_vs_float64": 1.71695095367852e-05,
+      "normalized_l2": 8.320962598351706e-07
+    },
+    "jax_float32": {
+      "max_abs_vs_float64": 1.807102477613398e-05,
+      "normalized_l2": 8.361582799171478e-07
+    }
+  },
+  {
+    "quantity": "derivatives/vjp_params/layers.3.weight",
+    "pytorch_float32": {
+      "max_abs_vs_float64": 2.3034154075229907e-06,
+      "normalized_l2": 7.336682316009436e-07
+    },
+    "jax_float32": {
+      "max_abs_vs_float64": 2.259555881733988e-06,
+      "normalized_l2": 7.38762814967676e-07
+    }
+  },
+  {
+    "quantity": "derivatives/vjp_params/layers.4.weight",
+    "pytorch_float32": {
+      "max_abs_vs_float64": 3.0249028881712547e-06,
+      "normalized_l2": 7.446682683276709e-07
+    },
+    "jax_float32": {
+      "max_abs_vs_float64": 2.594105911635225e-06,
+      "normalized_l2": 7.353003087497198e-07
+    }
+  }
+]
