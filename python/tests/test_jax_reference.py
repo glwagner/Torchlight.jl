@@ -92,13 +92,14 @@ class JaxReferenceTests(unittest.TestCase):
             with h5py.File(source) as reference, h5py.File(dest) as actual:
                 names = []
                 def collect(name, obj):
-                    if isinstance(obj, h5py.Dataset) and (name == "output" or name.startswith(("derivatives/", "intermediates/"))):
+                    if isinstance(obj, h5py.Dataset) and (name == "output" or name.startswith(("derivatives/", "intermediates/", "domain/"))):
                         names.append(name)
                 actual.visititems(collect)
                 self.assertGreater(len(names), 10)
                 self.assertEqual(actual["meta"].attrs["dense_weight_layout"], "(out, in)")
                 self.assertIn("training", reference)
                 self.assertNotIn("training", actual)
+                self.assertEqual(set(actual["domain"]), set(reference["domain"]))
                 for name in names:
                     self.assertEqual(actual[name].dtype, reference[name].dtype, name)
                     self.assertEqual(actual[name].shape, reference[name].shape, name)

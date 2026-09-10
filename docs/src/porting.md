@@ -157,7 +157,8 @@ PYTHONPATH=python .venv/bin/python -m unittest discover -s python/tests -v
 ```
 
 The sibling fixture contains JAX outputs, intermediates, MSE gradients, cotangent
-VJPs, and directional JVPs. It keeps weights and parameter derivatives in the
+VJPs, directional JVPs, and independently evaluated domain cases when supplied.
+It keeps weights and parameter derivatives in the
 original `(output, input)` coordinates so the same Julia mapping can read them.
 This evaluator uses plain JAX array operations; it does not validate Flax loading
 or automatic recovery of arbitrary JAX architectures.

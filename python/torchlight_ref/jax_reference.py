@@ -147,6 +147,13 @@ def export_jax_reference(input_path, output_path):
             if param_directions is not None:
                 _, param_jvp = jax.jvp(lambda p: predict(p, jx), (ps,),
                                        (jax.tree.map(jnp.asarray, param_directions),))
+            domain_outputs = {}
+            if "domain" in source:
+                for name, case in source["domain"].items():
+                    case_input = _array(case["input"], dtype)
+                    if case_input.ndim != 2 or case_input.shape[1] != widths[0]:
+                        raise ValueError(f"domain/{name}/input: expected (batch, {widths[0]})")
+                    domain_outputs[name] = predict(ps, jnp.asarray(case_input))
 
         # Write atomically so validation or evaluation failures do not leave a
         # partial reference under the requested output filename.
@@ -188,6 +195,16 @@ def export_jax_reference(input_path, output_path):
                         _write(group, key, value)
                 if param_jvp is not None:
                     _write(derivatives, "jvp_output_from_params", param_jvp)
+                if "domain" in source:
+                    domain = dest.create_group("domain")
+                    for key, value in source["domain"].attrs.items():
+                        domain.attrs[key] = value
+                    for name, value in domain_outputs.items():
+                        case = domain.create_group(name)
+                        for key, attr in source[f"domain/{name}"].attrs.items():
+                            case.attrs[key] = attr
+                        source.copy(f"domain/{name}/input", case, name="input")
+                        _write(case, "output", value)
             os.replace(temporary, output_path)
         finally:
             if os.path.exists(temporary):
