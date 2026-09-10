@@ -77,6 +77,34 @@ def torch_reference(arrays, x, target, cotangent, direction, param_directions):
 
 
 class JaxReferenceTests(unittest.TestCase):
+    def test_actual_exporter_schema_integrates(self):
+        from torchlight_ref.column_mlp import ColumnMLP
+        from torchlight_ref.export import export_column_mlp_fixture
+
+        with tempfile.TemporaryDirectory() as tmp:
+            source, dest = Path(tmp) / "source.h5", Path(tmp) / "jax.h5"
+            torch.manual_seed(52)
+            model = ColumnMLP((3, 5, 2)).double()
+            x, target = torch.randn(7, 3, dtype=torch.float64), torch.randn(7, 2, dtype=torch.float64)
+            export_column_mlp_fixture(str(source), model=model, x=x, target=target,
+                                      mode="eval", model_id="integration", seed=52, training=True)
+            export_jax_reference(source, dest)
+            with h5py.File(source) as reference, h5py.File(dest) as actual:
+                names = []
+                def collect(name, obj):
+                    if isinstance(obj, h5py.Dataset) and (name == "output" or name.startswith(("derivatives/", "intermediates/"))):
+                        names.append(name)
+                actual.visititems(collect)
+                self.assertGreater(len(names), 10)
+                self.assertEqual(actual["meta"].attrs["dense_weight_layout"], "(out, in)")
+                self.assertIn("training", reference)
+                self.assertNotIn("training", actual)
+                for name in names:
+                    self.assertEqual(actual[name].dtype, reference[name].dtype, name)
+                    self.assertEqual(actual[name].shape, reference[name].shape, name)
+                    np.testing.assert_allclose(actual[name][()], reference[name][()],
+                                               atol=1e-10, rtol=1e-8, err_msg=name)
+
     def test_independent_forward_and_derivatives(self):
         for dtype in (np.float32, np.float64):
             with self.subTest(dtype=dtype), tempfile.TemporaryDirectory() as tmp:

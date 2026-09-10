@@ -52,6 +52,7 @@ function review_fixture(path; defect = :none)
         state["layers.0.weight"] = defect === :nonfinite_weight ? fill(NaN, 3, 2) : ones(3, 2)
         state["layers.0.bias"] = ones(2)
         defect === :integer_buffer && (state["counter"] = Int64[7])
+        defect === :scalar_integer_buffer && (state["counter"] = Int64(7))
         if defect === :intermediate_dtype
             create_group(file, "intermediates")["layer0_preact"] = ones(Float32, 2, 2)
         elseif defect === :probe_dtype
@@ -71,12 +72,35 @@ end
         fixture = Torchlight.read_fixture(path)
         @test fixture.state_dict["counter"] == Int64[7]
         @test eltype(fixture.state_dict["counter"]) === Int64
+        review_fixture(path; defect = :scalar_integer_buffer)
+        fixture = Torchlight.read_fixture(path)
+        @test size(fixture.state_dict["counter"]) == ()
+        @test fixture.state_dict["counter"][] === Int64(7)
         for defect in (:target_dtype, :nonfinite_weight, :intermediate_dtype,
                        :probe_dtype, :nonfinite_derivative)
             review_fixture(path; defect)
             @test_throws Exception Torchlight.read_fixture(path)
         end
     end
+end
+
+@testset "Review: required coverage controls acceptance" begin
+    required = [("forward", "reference"), ("derivatives", "input")]
+    report = Torchlight.Report("Required coverage")
+    Torchlight.record!(report, "forward", "reference", Torchlight.passed)
+    ok, missing, not_passed = Torchlight.acceptance(report, required)
+    @test !ok
+    @test missing == ["derivatives / input"]
+    for status in (Torchlight.not_tested, Torchlight.unsupported, Torchlight.failed)
+        r = deepcopy(report)
+        Torchlight.record!(r, "derivatives", "input", status)
+        @test !first(Torchlight.acceptance(r, required))
+    end
+    Torchlight.record!(report, "derivatives", "input", Torchlight.passed)
+    @test first(Torchlight.acceptance(report, required))
+    # A duplicate success must not overwrite a prior failure or omission.
+    Torchlight.record!(report, "derivatives", "input", Torchlight.not_tested)
+    @test !first(Torchlight.acceptance(report, required))
 end
 
 @testset "Review: reports disclose tolerance policy and escape errors" begin
