@@ -6,8 +6,8 @@
 #
 #     |a − e| ≤ atol + rtol * max(|e|, scale)
 #
-# where `scale` is optionally the max-abs of the reference array (Luximm's
-# relative "features" bar), so near-zero components in a large-magnitude array
+# where `scale` is optionally the max-abs of the reference array, so
+# near-zero components in a large-magnitude array
 # are not held to an absolute bar tighter than the array's own roundoff.
 # Non-finite values in either array always fail.
 
@@ -18,7 +18,7 @@ Component-wise tolerance `|a_i − e_i| ≤ atol + rtol * denom_i`.  By default
 `denom_i = |e_i|` (strict component-wise).  With `relative_to_max = true`,
 `denom_i = max(|e_i|, maximum(abs, e))`, a scale-aware budget appropriate for
 derivative arrays whose near-zero components carry the roundoff of the whole
-array (Luximm's relative "features" bar).  Opting into the scale-aware form is
+array.  Opting into the scale-aware form is
 a deliberate, per-quantity choice and is always serialized with the evidence.
 """
 Base.@kwdef struct Tolerance

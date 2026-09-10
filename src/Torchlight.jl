@@ -1,13 +1,15 @@
 """
     Torchlight
 
-Validated translation of PyTorch/JAX neural networks into Lux.jl.
+Validated translation of neural-network parameterizations for Earth system
+models from PyTorch/JAX into Lux.jl.
 
 The package is a *validation harness*, not a converter: it reads reference
 fixtures exported by the source framework (see `python/torchlight_ref`), maps
 source parameters onto a Lux parameter tree with full coverage checks, and
 compares outputs, intermediate activations, input/parameter derivatives, and
-optimizer updates across several Julia execution/AD paths.  Every check is
+optimizer updates across several Julia execution/AD paths, so that a translated
+scheme can be trusted inside a differentiable Julia model.  Every check is
 recorded as evidence with a status of `passed`, `failed`, `unsupported`, or
 `not_tested`, and rendered into a machine-readable and a Markdown report.
 """
@@ -16,7 +18,6 @@ module Torchlight
 using HDF5
 using LinearAlgebra
 using Lux
-using Luximm: Luximm
 using Optimisers
 using Printf
 using Random

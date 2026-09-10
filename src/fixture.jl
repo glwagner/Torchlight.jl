@@ -7,8 +7,8 @@
 # (`(batch, features)` -> `(features, batch)`), but *not* for dense weights
 # (`(out, in)` -> `(in, out)`), which need `to_lux_dense_weight`.
 #
-# Unlike `Luximm.Interop.read_parity`, this reader preserves the stored dtype
-# (Float64 stays Float64; Int64 stays Int64).
+# The reader preserves the stored dtype (Float64 stays Float64; Int64 stays
+# Int64) and rejects non-finite or mis-typed arrays.
 
 const SUPPORTED_SCHEMA_VERSIONS = (1,)
 
@@ -152,9 +152,8 @@ source_layout(::Fixture, a::AbstractArray) = reverse(size(a))
 """
     reverse_axes(a) -> Array
 
-Dtype-preserving full axis reversal `(d1, …, dN) -> (dN, …, d1)`.  This is
-`Luximm.Interop.axis_reverse` without the `Float32` cast.  Applying it to an
-HDF5-natural array restores the source framework's logical axis order.
+Dtype-preserving full axis reversal `(d1, …, dN) -> (dN, …, d1)`.  Applying it
+to an HDF5-natural array restores the source framework's logical axis order.
 """
 reverse_axes(a::AbstractArray) = permutedims(a, ntuple(i -> ndims(a) + 1 - i, ndims(a)))
 reverse_axes(a::AbstractVector) = copy(a)

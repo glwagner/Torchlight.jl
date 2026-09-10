@@ -1,18 +1,19 @@
 # Parameter mapping with coverage checks.
 #
-# Torchlight reuses `Luximm.Interop.apply_state_dict` for the functional
-# parameter-tree rebuild and wraps it with the checks that a parity test of a
-# trained network needs but that the mapper itself does not perform:
+# A mapping is a table of `(source_key, destination_path, transform)` triples.
+# `map_parameters` rebuilds the Lux parameter tree functionally and enforces
+# what a parity test of a trained network needs:
 #   * every source key is consumed (source coverage)
 #   * every destination leaf is written exactly once (destination coverage,
 #     no duplicates)
 #   * the transformed array has the shape and element type of the template leaf
+#   * each transform is evaluated exactly once, on the validated array
 
 """
     ParameterMapping
 
-A vector of `(source_key, destination_path, transform)` triples, the same
-convention as Luximm's mapping tables.  `destination_path` is a tuple of
+A vector of `(source_key, destination_path, transform)` triples.
+`destination_path` is a tuple of
 `Symbol`s into the Lux parameter `NamedTuple`; `transform` is applied to the
 HDF5-natural array before insertion.
 """
@@ -60,6 +61,17 @@ _leaves(x, prefix::Tuple = ()) = Pair{Tuple,Any}[]
 
 _pathstr(p::Tuple) = join(string.(p), ".")
 
+"""Return a copy of `nt` with the leaf at `path` replaced by `leaf` (non-mutating)."""
+function _set_leaf(nt::NamedTuple, path::Tuple, leaf)
+    head = first(path)
+    haskey(nt, head) || error("leaf path missing key: $head (have: $(propertynames(nt)))")
+    if length(path) == 1
+        return merge(nt, NamedTuple{(head,)}((leaf,)))
+    else
+        return merge(nt, NamedTuple{(head,)}((_set_leaf(getfield(nt, head), Base.tail(path), leaf),)))
+    end
+end
+
 function _getleaf(nt, path::Tuple)
     x = nt
     for k in path
@@ -71,8 +83,8 @@ end
 """
     map_parameters(ps, state_dict, mapping; strict = true) -> (ps′, report::MappingReport)
 
-Apply `mapping` to `ps` via `Luximm.Interop.apply_state_dict` after checking
-coverage, duplicates, shapes and element types against the template `ps`.
+Apply `mapping` to `ps` after checking coverage, duplicates, shapes and
+element types against the template `ps`.
 
 With `strict = true` (default) any incompleteness or mismatch throws; the
 report is still available in the error message.  With `strict = false` the
@@ -126,10 +138,10 @@ function map_parameters(ps::NamedTuple, state_dict::AbstractDict{String}, mappin
               "  shape mismatches: $(report.shape_mismatches)\n" *
               "  dtype mismatches: $(report.dtype_mismatches)")
     end
-    # Apply the *validated* arrays (no second transform call) through Luximm's
-    # functional tree rebuild.
-    validated = Dict{String,Array}(ds => transformed[ds] for ds in keys(transformed))
-    identity_mapping = [(ds, path, identity) for (key, path, _) in mapping for ds in (_pathstr(path),)]
-    ps′ = Luximm.Interop.apply_state_dict(ps, validated, identity_mapping)
+    # Insert the *validated* arrays (no second transform call).
+    ps′ = ps
+    for (key, path, _) in mapping
+        ps′ = _set_leaf(ps′, path, transformed[_pathstr(path)])
+    end
     return ps′, report
 end

@@ -7,8 +7,8 @@ row-major order and **dtype is preserved**; HDF5.jl reads them with axes
 reversed relative to the source logical order, so `(batch, features)` arrives
 as `(features, batch)` (Lux-natural) and an `(out, in)` dense weight arrives as
 `(in, out)` and needs `Torchlight.to_lux_dense_weight`.  The `/input`,
-`/state_dict`, `/output` subset is layout-compatible with Luximm's parity
-fixtures.
+`/state_dict`, `/output` subset follows the same layout convention as
+Luximm.jl's parity fixtures, so fixtures of that form can be read too.
 
 | Node | Contents |
 |---|---|
