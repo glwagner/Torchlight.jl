@@ -28,6 +28,11 @@ fixture_path = isempty(ARGS) ? joinpath(@__DIR__, "..", "test", "fixtures", "col
 # 1. Read what PyTorch exported: inputs, parameters, outputs, derivatives.
 fx = read_fixture(fixture_path)
 fx.meta["mode"] == "eval" || error("this walk-through uses test mode; fixture is mode=$(fx.meta["mode"])")
+# The script hard-codes tanh hidden layers, a linear output, and mean-squared
+# loss, so the fixture must declare exactly those.
+for (key, expected) in ("activation" => "tanh", "output_activation" => "identity", "loss" => "mse_mean")
+    get(fx.meta, key, nothing) == expected || error("fixture declares $key=$(get(fx.meta, key, nothing)); this example implements $expected")
+end
 widths = Int.(fx.meta["widths"])
 T = Torchlight.element_type(fx)
 println(fx)
