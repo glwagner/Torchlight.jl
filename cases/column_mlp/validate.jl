@@ -407,7 +407,8 @@ function validate_column_mlp(fixture_path::AbstractString; outdir = nothing,
             end
             record!(rep, "training", "adam_update_delta_diagnosis", n_tiny == n_fail_total ? passed : failed,
                     "$n_tiny of $n_fail_total failing update components have |grad| < 1e3*eps=$(1e3*ϵ): " *
-                    (n_tiny == n_fail_total ? "consistent with Float32 ill-conditioning of g/(|g|+eps), not a rule mismatch" :
+                    (n_tiny == n_fail_total ? "consistent with Float32 ill-conditioning of g/(|g|+eps) amplifying gradient roundoff; " *
+                                              "rule equivalence must be shown separately by feeding the exported gradients to the optimizer" :
                                               "some failures are NOT explained by tiny gradients"))
         end
         # Optimizer state: Optimisers.Adam leaf state is (mt, vt, βt); torch stores exp_avg, exp_avg_sq, step.

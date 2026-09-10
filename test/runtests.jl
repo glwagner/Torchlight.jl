@@ -135,13 +135,19 @@ const TINY32 = joinpath(FIXTURES, "column_mlp_tiny_float32.h5")
         outdir = mktempdir()
         rep = ColumnMLPValidate.validate_column_mlp(TINY64; outdir, backends)
         c = summarize(rep)
-        @test c[failed] == 0
+        # No check outside the final acceptance verdict may fail.  The verdict
+        # itself is *expected* to fail when a backend subset is tested, because
+        # omitted required capabilities are recorded as not_tested.
+        non_acceptance_failures = filter(e -> e.status == failed && e.section != "acceptance", rep.evidence)
+        @test isempty(non_acceptance_failures)
         ok, missing, np = acceptance(rep, ColumnMLPValidate.REQUIRED)
+        verdict = only(filter(e -> e.section == "acceptance" && e.name == "required_capabilities", rep.evidence))
         if backends == (:zygote, :enzyme, :reactant)
-            @test ok
+            @test ok && verdict.status == passed && c[not_tested] == 0
         else
-            @test !ok    # omitted backends are not_tested, never passed by default
+            @test !ok && verdict.status == failed
             @test c[not_tested] > 0
+            @test !isempty(np)    # omitted backends are not_tested, never passed by default
         end
         @test isfile(joinpath(outdir, "column_mlp_tiny_float64.md"))
         # defect detection must have been exercised and passed
