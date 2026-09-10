@@ -1,5 +1,31 @@
 # Independent failure-injection checks from implementation review.
 using HDF5
+using Lux, Random
+
+module ReviewColumnMLP
+include(joinpath(@__DIR__, "..", "cases", "column_mlp", "ColumnMLP.jl"))
+end
+
+@testset "Review: fixed-mask dropout contract" begin
+    case = ReviewColumnMLP.ColumnMLPCase
+    for probability in (-0.1, 1.0, NaN)
+        @test_throws Exception case.column_mlp([3, 5, 2]; dropout_p = probability)
+        @test_throws Exception case.FixedMaskDropout(probability)
+    end
+    model = case.column_mlp([3, 5, 2]; dropout_p = 0.1, masked = true)
+    ps, st = Lux.setup(Xoshiro(48), model)
+    x = ones(Float32, 3, 7)
+    installed = case._install_masks(st, Dict("layer0" => ones(Float32, 5, 7)), 1)
+    y, _ = model(x, ps, installed)
+    @test size(y) == (2, 7)
+    @test all(isfinite, y)
+    @test_throws Exception case._install_masks(st, Dict("layer0" => fill(0.5f0, 5, 7)), 1)
+    @test_throws Exception case._install_masks(st, Dict("layer0" => ones(Float32, 5, 7), "layer1" => ones(Float32, 5, 7)), 1)
+    @test_throws Exception case._install_masks(st, Dict{String,Any}(), 1)
+    bad_shape = case._install_masks(st, Dict("layer0" => ones(Float32, 5, 1)), 1)
+    @test_throws Exception model(x, ps, bad_shape)
+    @test_throws Exception case.mse_mean(ones(2, 7), ones(2, 1))
+end
 
 @testset "Review: compare cannot certify invalid evidence" begin
     @test Torchlight.compare([1.0], [1.0]).passed
