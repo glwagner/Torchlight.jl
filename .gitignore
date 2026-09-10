@@ -1,8 +1,9 @@
 .venv/
 data/fixtures/*.h5
-*.h5
+data/**/*.h5
 Manifest.toml
 __pycache__/
 *.pyc
 .DS_Store
 benchmarks/results/
+!test/fixtures/*.h5

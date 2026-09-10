@@ -1,0 +1,14 @@
+{
+  "torch": "2.14.0",
+  "seed": 20260910,
+  "sha256": {
+    "column_mlp_tiny_float64.h5": "d673983110021bc4188e139caf84e994596955b65230e03f9cb48d6d7c6c308c",
+    "column_mlp_tiny_float64_train.h5": "39370cc7e158a7c17a2471ff634bfd3f169b2a84f93fa42c169faee6f437aa0f",
+    "column_mlp_tiny_float32.h5": "0cf54c2afeb79be54afc040983cd1114d8d45717d474a283590454a378fbff4a",
+    "column_mlp_tiny_float32_train.h5": "8519632a194e97ec223744442bb48b934031a36ab79bf70cdf58747b22966cc6",
+    "column_mlp_full_float64.h5": "5206a091ea11823226c3abb63fdc44265f2c091b93016ccb1491d06f966fc03d",
+    "column_mlp_full_float64_train.h5": "94dc03a9feb76a90f75a0d49172084e230aa4dd8c5ed1df5808c06fb5f8a72b2",
+    "column_mlp_full_float32.h5": "1ed744fece361ebb54e9f0e2add7ec8fbe3e3e45bae81ae774d14a583884f6f3",
+    "column_mlp_full_float32_train.h5": "79b7f59e3f369c9c34e7e8d569d87a4fc2171903c08abe3bca72ecd4e1da4b54"
+  }
+}
