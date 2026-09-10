@@ -30,9 +30,9 @@ reference is an independent reconstruction, not the authors' code.
 | Fixture | Result | Notes |
 |---|---|---|
 | tiny (7→11→5→3) Float64 | accepted | all backends, 71 checks |
-| tiny Float32 | see `benchmarks/results` | |
-| full (paper size) Float64 | accepted | all backends, Reactant compile + run timed |
-| full Float32 | **not accepted** | Adam first-step update fails the frozen Float32 tolerance on 102 of 1,214,876 update components (15/20/20/18/29 across the five weight blocks; max-abs 6.9e-6) and on 1 post-update parameter. All 102 failing components have reference gradients below 10³·ε, which is *consistent with* Float32 ill-conditioning of `g/(|g|+ε)`; the Float64 fixture passes the same check. An independent control (collaborating reviewer) that feeds the exact PyTorch-exported Float32 gradients into `Optimisers.Adam` reproduces PyTorch's parameters and update to 3.7e-9 with zero failures, so the update rule matches and the mismatch comes from Float32 gradient differences amplified by `g/(|g|+ε)`. Retained as a failure under the frozen tolerance, not loosened. |
+| tiny Float32 | accepted | all backends, 71 checks |
+| full (paper size) Float64 | accepted | all backends, 75 checks, Reactant compile + run timed |
+| full Float32 | **not accepted** | 72 passed; Adam first-step update fails the frozen Float32 tolerance on 102 of 1,214,876 components (all with `|g| < 10³ε`). Diagnosis and the independent optimizer control are in [docs/plan.md §7](docs/plan.md) and [docs/results/2026-09-10](docs/results/2026-09-10/README.md). |
 
 Machine-generated reports for this run are committed under
 `docs/results/2026-09-10/` (Markdown and JSON with fixture hashes and tested
@@ -74,6 +74,15 @@ PYTHONPATH=python .venv/bin/python -m unittest discover -s python/tests
 
 Requires Julia 1.12 (Luximm is pulled from GitHub via `[sources]`, pinned to
 commit `8e26bbe`), Python ≥ 3.12 with `torch`, `h5py`, `numpy`, `jax`.
+
+To reproduce the committed reports with the tested versions, use the committed
+`Manifest.toml` (instantiate as above) and the primary-package version snapshot
+`python/requirements-lock.txt` (five primary packages; transitive dependencies
+are not locked):
+
+```bash
+.venv/bin/pip install -r python/requirements-lock.txt
+```
 
 ## Using the harness for another model
 
