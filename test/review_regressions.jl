@@ -6,6 +6,36 @@ module ReviewColumnMLP
 include(joinpath(@__DIR__, "..", "cases", "column_mlp", "ColumnMLP.jl"))
 end
 
+@testset "Review: standalone translation example" begin
+    example = abspath(joinpath(@__DIR__, "..", "examples", "column_mlp_translation.jl"))
+    fixture = joinpath(@__DIR__, "fixtures", "column_mlp_tiny_float64.h5")
+    # Use the active test environment, including Pkg.test's temporary project.
+    command = `$(Base.julia_cmd()) --startup-file=no --project=$(dirname(Base.active_project())) $example`
+    mktempdir() do dir
+        # An unrelated working directory exercises the clone's default fixture
+        # path rather than accidentally relying on the repository being cwd.
+        good_log = IOBuffer()
+        good = run(pipeline(ignorestatus(Cmd(command; dir)), stdout = good_log, stderr = good_log))
+        good_output = String(take!(good_log))
+        success(good) || println(good_output)
+        @test success(good)
+
+        # The example must reject numerical disagreement, not merely print it.
+        bad_fixture = joinpath(dir, "wrong_output.h5")
+        cp(fixture, bad_fixture)
+        h5open(bad_fixture, "r+") do f
+            output = read(f["output"])
+            output .+= 1.0
+            write(f["output"], output)
+        end
+        bad_log = IOBuffer()
+        bad = run(pipeline(ignorestatus(Cmd(`$command $bad_fixture`; dir)), stdout = bad_log, stderr = bad_log))
+        bad_output = String(take!(bad_log))
+        @test !success(bad)
+        @test occursin("FAIL forward", bad_output)
+    end
+end
+
 @testset "Review: fixed-mask dropout contract" begin
     case = ReviewColumnMLP.ColumnMLPCase
     for probability in (-0.1, 1.0, NaN)
