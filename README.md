@@ -55,9 +55,31 @@ Scope of the JAX adapter (`python/torchlight_ref/jax_reference.py`): an
 the PyTorch fixture's arrays and re-derives outputs, gradients, VJPs, JVPs and
 domain outputs. It is not a Flax checkpoint converter.
 
+## Example
+
+`examples/column_mlp_translation.jl` is the shortest end-to-end walk-through:
+read the PyTorch fixture, write the same architecture as a Lux `Chain`, load
+the PyTorch weights with coverage checks, and compare outputs and gradients.
+It runs from a fresh clone on the committed tiny fixture:
+
+```bash
+julia --project=. examples/column_mlp_translation.jl
+```
+
+```julia
+model = Chain(; dense_0 = Dense(7 => 11, tanh), dropout_0 = Dropout(0.1),
+                dense_1 = Dense(11 => 5, tanh), dropout_1 = Dropout(0.1),
+                dense_2 = Dense(5 => 3))
+mapping = [("layers.$i.weight", (Symbol("dense_$i"), :weight), dense_weight_transform(fx)) ...,
+           ("layers.$i.bias",   (Symbol("dense_$i"), :bias),   identity) ...]
+ps, report = map_parameters(Lux.f64(ps), fx.state_dict, mapping)   # fails on any gap
+compare(first(model(fx.input, ps, st)), fx.output)                 # PASS max_abs=8e-17
+```
+
 ## Layout
 
 ```
+examples/                 standalone walk-through scripts
 src/                      Torchlight: fixture reader, parameter mapping, compare, report, probes, adapters
 cases/column_mlp/         Lux model, parameter mapping, acceptance runner (validate.jl)
 python/torchlight_ref/    PyTorch reference model + fixture exporter; JAX evaluator
