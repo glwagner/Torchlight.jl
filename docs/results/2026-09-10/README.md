@@ -13,9 +13,13 @@ Repository commit at run time: see `git log` for `d8e9c36` (runner) and
 | tiny Float64 | 71 | 0 | 1 | 0 | ACCEPTED |
 | tiny Float32 | 71 | 0 | 1 | 0 | ACCEPTED |
 | full Float64 | 75 | 0 | 1 | 0 | ACCEPTED |
-| full Float32 | 72 | 3 | 1 | 0 | NOT ACCEPTED (Adam first step; see plan §7) |
+| full Float32 | 73 | 3 | 1 | 0 | NOT ACCEPTED (Adam first step; see plan §7) |
 
 The single `unsupported` entry in every report is
 `dropout/native_stochastic_trajectory_match`, recorded by design.
 `benchmarks/results/` holds scratch outputs of later reruns and is not
 committed; this directory is the citable snapshot.
+
+The independent JAX evaluation of the same fixtures, including the original
+strict-tolerance Float32 failure counts and the Float32-vs-Float64 calibration,
+is in [`jax/README.md`](jax/README.md) with provenance and fixture hashes.

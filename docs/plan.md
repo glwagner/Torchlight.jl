@@ -147,7 +147,7 @@ Measured results (10 Sep 2026, Apple M5 Max, Julia 1.12.7, torch 2.14.0):
 | tiny F64 | 8e-17 | ≤ 1e-16 | all pass | accepted (71 passed, 0 failed) |
 | tiny F32 | 3e-8 | ≤ 1e-7 | all pass | accepted (71 passed, 0 failed) |
 | full F64 | 6e-16 | 4e-15 | all pass | accepted (75 passed, 0 failed) |
-| full F32 | 2.5e-7 | 9.5e-7 | all pass | **not accepted** (Adam, §7): 72 passed, 3 failed (`adam_params_after` 1 component; `adam_update_delta` 102 of 1,214,876 components across the five weight blocks, 15/20/20/18/29; plus the acceptance verdict) |
+| full F32 | 2.5e-7 | 9.5e-7 | all pass | **not accepted** (Adam, §7): 73 passed, 3 failed (`adam_params_after` 1 component; `adam_update_delta` 102 of 1,214,876 components across the five weight blocks, 15/20/20/18/29; plus the acceptance verdict) |
 
 Injected defects (feature permutation, zeroed bias, wrong loss denominator,
 zero input gradient, incomplete mapping) are each flagged by the harness and

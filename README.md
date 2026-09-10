@@ -32,7 +32,7 @@ reference is an independent reconstruction, not the authors' code.
 | tiny (7→11→5→3) Float64 | accepted | all backends, 71 checks |
 | tiny Float32 | accepted | all backends, 71 checks |
 | full (paper size) Float64 | accepted | all backends, 75 checks, Reactant compile + run timed |
-| full Float32 | **not accepted** | 72 passed; Adam first-step update fails the frozen Float32 tolerance on 102 of 1,214,876 components (all with `|g| < 10³ε`). Diagnosis and the independent optimizer control are in [docs/plan.md §7](docs/plan.md) and [docs/results/2026-09-10](docs/results/2026-09-10/README.md). |
+| full Float32 | **not accepted** | 73 passed; Adam first-step update fails the frozen Float32 tolerance on 102 of 1,214,876 components (all with `|g| < 10³ε`). Diagnosis and the independent optimizer control are in [docs/plan.md §7](docs/plan.md) and [docs/results/2026-09-10](docs/results/2026-09-10/README.md). |
 
 Machine-generated reports for this run are committed under
 `docs/results/2026-09-10/` (Markdown and JSON with fixture hashes and tested
