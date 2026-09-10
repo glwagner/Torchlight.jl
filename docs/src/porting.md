@@ -1,7 +1,9 @@
 # Porting a model with Torchlight
 
-A successful port pairs readable Lux code with reproducible evidence of agreement
-with its source. This guide is a workflow for a person or LLM; it does not imply that
+Torchlight translates neural-network parameterizations for Earth system models
+from PyTorch or JAX into Lux. A successful port pairs readable Lux code with
+reproducible evidence of agreement with its source. This guide is a workflow for
+a person or LLM; it does not imply that
 Torchlight automatically translates arbitrary Python or supports every operation.
 Consult the README and generated reports for implemented and executed capabilities.
 
@@ -44,12 +46,12 @@ counts. Preserve Float64 through export, loading, parameter replacement, and
 evaluation when making Float64 claims. Record the effective source dtype; enabling
 JAX X64 must happen before creating Float64 arrays.
 
-Torchlight's fixture workflow draws on
-[Luximm's porting guide](https://github.com/csvance/Luximm.jl/blob/8e26bbee61d899f278e2c771bb10742a66cf3315/docs/src/porting.md).
-Its input/state-dictionary/output convention makes reference capture and layerwise
-debugging reusable. Check the installed reader and transforms before reusing them:
-the inspected Luximm revision casts some arrays to Float32. A dtype-preserving
-extension must be validated independently.
+[Luximm's porting guide](https://github.com/csvance/Luximm.jl/blob/8e26bbee61d899f278e2c771bb10742a66cf3315/docs/src/porting.md)
+is related work and an inspiration for Torchlight's fixture-first workflow:
+capture shared inputs, weights, and outputs, then use intermediate values to
+localize discrepancies. Luximm is not a Torchlight dependency. Torchlight owns
+its fixture reader, dtype-preserving transforms, and checked parameter-tree
+mapping; no Luximm installation or API is needed to follow this guide.
 
 ## Separate serialization from mathematical layout
 

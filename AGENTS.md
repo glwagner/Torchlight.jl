@@ -1,7 +1,8 @@
 # Working on Torchlight.jl
 
-Torchlight helps people and LLMs produce editable Lux implementations of neural
-networks and establish what has actually been validated. Read `README.md` and
+Torchlight helps people and LLMs translate neural-network parameterizations for
+Earth system models from PyTorch or JAX into editable Lux implementations and
+establish what has actually been validated. Read `README.md` and
 `docs/src/porting.md` before adding a port. Use `docs/src/review_checklist.md` when
 reviewing one.
 
@@ -10,7 +11,9 @@ reviewing one.
 1. Inspect the executable source, including functional operations, preprocessing,
    state updates, and loss reduction. Record the source revision and environment.
 2. Define the case's input shapes, dtypes, modes, and required capabilities before
-   implementation. Separate a paper-inspired reconstruction from an original model.
+   implementation. Record physical units, feature order, normalization, and the
+   parameterization's role in its host Earth system model. Separate a paper-inspired
+   reconstruction from an original model.
 3. Export actual reference arrays from the source framework. Matching random seeds
    across languages is insufficient. Start with an asymmetric, small example.
 4. Implement ordinary Lux layers with explicit parameters and state. Keep Python

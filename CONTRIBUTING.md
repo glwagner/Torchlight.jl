@@ -1,8 +1,10 @@
 # Contributing
 
-Torchlight welcomes native Lux ports, source-framework fixtures, validation tools,
-documentation, and small reproducible reports of unsupported operations. The useful
-unit of progress is a port accompanied by evidence someone else can reproduce.
+Torchlight translates neural-network parameterizations for Earth system models
+from PyTorch or JAX into Lux. Contributions can include native Lux ports,
+source-framework fixtures, validation tools, documentation, and small reproducible
+reports of unsupported operations. The useful unit of progress is a port
+accompanied by evidence someone else can reproduce.
 
 Start with the [README](README.md), [porting guide](docs/src/porting.md), and
 [review checklist](docs/src/review_checklist.md). Agent contributors should also
@@ -30,6 +32,9 @@ a reproducible download or generation command and a recorded hash.
 
 For a new model, include its source identity and license, native implementation,
 parameter/state mapping, fixture generator, tested domain, and validation results.
+Describe its role in the host Earth system model, including physical units,
+feature order, normalization, and output scaling. Synthetic numerical agreement
+and scientific performance in the host model require separate evidence.
 Explain which features remain unsupported or untested. An inference-only port is
 useful when its scope is explicit; it does not establish trainability.
 
