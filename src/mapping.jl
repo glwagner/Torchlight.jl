@@ -118,6 +118,7 @@ function map_parameters(ps::NamedTuple, state_dict::AbstractDict{String}, mappin
         end
         template = _getleaf(ps, path)
         arr = transform(state_dict[key])
+        arr isa AbstractArray || error("transform for $key -> $ds returned a $(typeof(arr)); transforms must return arrays")
         transformed[ds] = arr
         size(arr) == size(template) ||
             push!(shape_mm, "$key -> $ds: got $(size(arr)), template $(size(template))")
