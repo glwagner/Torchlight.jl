@@ -146,7 +146,7 @@ Measured results (10 Sep 2026, Apple M5 Max, Julia 1.12.7, torch 2.14.0):
 | tiny F64 | 8e-17 | ≤ 1e-16 | all pass | accepted (71 passed, 0 failed) |
 | tiny F32 | 3e-8 | ≤ 1e-7 | all pass | accepted (71 passed, 0 failed) |
 | full F64 | 6e-16 | 4e-15 | all pass | accepted (75 passed, 0 failed) |
-| full F32 | 2.5e-7 | 9.5e-7 | all pass | **not accepted** (Adam, §7): 72 passed, 3 failed (`adam_params_after` 1/262,144, `adam_update_delta` 18/262,144 in `layers.3.weight`, plus the acceptance verdict) |
+| full F32 | 2.5e-7 | 9.5e-7 | all pass | **not accepted** (Adam, §7): 72 passed, 3 failed (`adam_params_after` 1 component; `adam_update_delta` 102 of 1,214,876 components across the five weight blocks, 15/20/20/18/29; plus the acceptance verdict) |
 
 Injected defects (feature permutation, zeroed bias, wrong loss denominator,
 zero input gradient, incomplete mapping) are each flagged by the harness and
@@ -181,9 +181,10 @@ against `torch.optim`; the exact update rule is recorded in the fixture. A
 compiled `Lux.Training.single_train_step!` with `AutoEnzyme` under Reactant
 reproduces the SGD step (optional diagnostic, passed on all fixtures).
 
-Finding: in Float32 the full model's Adam step fails the frozen bar on 18 of
-262,144 components of `layers.3.weight` (max-abs 6.9e-6; parameters after the
-step fail on 1 component; 102 update components fail across all blocks). The
+Finding: in Float32 the full model's Adam step fails the frozen bar on 102 of
+1,214,876 update components spread over all five weight blocks (15, 20, 20, 18,
+29 per block; worst block `layers.3.weight`, max-abs 6.9e-6); parameters after
+the step fail on 1 component. The
 first Adam step is `lr·g/(|g|+ε)`; for `|g| ≲ 10³ε` a Float32 rounding
 difference in `g` changes the update at O(1) relative size in either framework.
 Three pieces of evidence attribute the failure: (i) the runner's
