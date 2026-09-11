@@ -10,6 +10,7 @@
   harness and produced by `python/torchlight_ref`.
 - [Results](../results/): committed snapshots of the machine-generated
   acceptance reports (Markdown and JSON, with fixture hashes and tested
-  versions), one directory per run date.
+  versions), one directory per run date, each with a
+  [figures page](../results/2026-09-10/figures.md).
 - Contributor conventions: [CONTRIBUTING.md](../../CONTRIBUTING.md) and
   [AGENTS.md](../../AGENTS.md).

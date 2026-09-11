@@ -46,7 +46,8 @@ authors' code.
 
 Machine-generated reports for this run are committed under
 `docs/results/2026-09-10/` (Markdown and JSON with fixture hashes and tested
-versions); `benchmarks/results/` holds uncommitted scratch reruns. See [docs/plan.md](docs/plan.md) for the full plan, decisions, and
+versions), with seven figures in [figures.md](docs/results/2026-09-10/figures.md);
+`benchmarks/results/` holds uncommitted scratch reruns. See [docs/plan.md](docs/plan.md) for the full plan, decisions, and
 findings, and [docs/src/](docs/src/index.md) for the porting guide, review
 checklist, and fixture schema.
 

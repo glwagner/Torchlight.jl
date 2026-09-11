@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torchlight Column MLP Evidence</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f6f7f9; --surface: #fcfcfd; --ink: #111418; --ink-2: #4b5560; --muted: #7d8791;
+  --grid: #e3e6ea; --axis: #c3c9cf; --border: rgba(17,20,24,0.10);
+  --f64: #2a78d6; --f64-soft: rgba(42,120,214,0.12); --f32: #eb6834; --f32-soft: rgba(235,104,52,0.12);
+  --aqua: #1baf7a; --gray-mark: #b9c0c7;
+  --good: #0ca30c; --critical: #d03b3b; --good-text: #006300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0f1114; --surface: #1a1c20; --ink: #f4f5f7; --ink-2: #c1c7ce; --muted: #8d959d;
+    --grid: #2b2f34; --axis: #3b4046; --border: rgba(255,255,255,0.10);
+    --f64: #3987e5; --f64-soft: rgba(57,135,229,0.18); --f32: #d95926; --f32-soft: rgba(217,89,38,0.18);
+    --aqua: #199e70; --gray-mark: #4a5057; --good-text: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0f1114; --surface: #1a1c20; --ink: #f4f5f7; --ink-2: #c1c7ce; --muted: #8d959d;
+  --grid: #2b2f34; --axis: #3b4046; --border: rgba(255,255,255,0.10);
+  --f64: #3987e5; --f64-soft: rgba(57,135,229,0.18); --f32: #d95926; --f32-soft: rgba(217,89,38,0.18);
+  --aqua: #199e70; --gray-mark: #4a5057; --good-text: #0ca30c;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 1.5; }
+main { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+h1, h2, h3 { font-family: Manrope, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+h2 { font-size: 19px; font-weight: 600; line-height: 1.3; }
+p { max-width: 68ch; margin: 0; }
+.lede { color: var(--ink-2); margin-top: 10px; font-size: 17px; }
+.eyebrow { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 8px; margin-bottom: 36px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.verdicts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 44px; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; display: grid; gap: 4px; }
+.tile .name { font-size: 14px; color: var(--ink-2); }
+.tile .value { font-family: Manrope, system-ui, sans-serif; font-size: 28px; font-weight: 700; line-height: 1.1; }
+.tile .counts { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); width: max-content; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.pill.fail::before { background: var(--critical); }
+figure { margin: 0 0 48px; display: grid; gap: 10px; }
+figure .sub { color: var(--ink-2); font-size: 15px; }
+.chart { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px 6px; overflow-x: auto; position: relative; }
+svg { display: block; width: 100%; height: auto; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; }
+svg text { fill: var(--muted); }
+svg .t2 { fill: var(--ink-2); }
+svg .grid { stroke: var(--grid); stroke-width: 1; }
+svg .axis { stroke: var(--axis); stroke-width: 1; }
+svg .eps { stroke: var(--axis); stroke-width: 1; }
+svg .tol { stroke: var(--critical); stroke-width: 1; opacity: 0.55; }
+svg .f64 { fill: var(--f64); stroke: var(--f64); }
+svg .f32 { fill: var(--f32); stroke: var(--f32); }
+svg .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg .dot { stroke: var(--surface); stroke-width: 2; }
+svg .bar { stroke: none; }
+svg .barfail { fill: var(--critical); }
+svg .sgd { fill: var(--gray-mark); }
+svg .hit { fill: transparent; }
+figcaption { color: var(--ink-2); font-size: 15px; max-width: 72ch; }
+figcaption strong { color: var(--ink); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.sw.f64 { background: var(--f64); } .sw.f32 { background: var(--f32); } .sw.crit { background: var(--critical); } .sw.gray { background: var(--gray-mark); }
+.sw.line { width: 16px; height: 2px; border-radius: 0; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--page); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; padding: 6px 9px; border-radius: 4px; white-space: nowrap; opacity: 0; transition: opacity 80ms; z-index: 2; }
+details { font-size: 13px; }
+summary { cursor: pointer; color: var(--muted); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; }
+summary:focus-visible { outline: 2px solid var(--f64); outline-offset: 2px; }
+table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; }
+td, th { padding: 3px 12px 3px 0; text-align: right; border-bottom: 1px solid var(--grid); }
+td:first-child, th:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 500; }
+section.notes { border-top: 1px solid var(--border); padding-top: 24px; display: grid; gap: 10px; }
+section.notes p { color: var(--ink-2); font-size: 15px; }
+@media (max-width: 640px) { .verdicts { grid-template-columns: repeat(2, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .tip { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">Torchlight.jl · cases/column_mlp · run of 10 September 2026</div>
+  <h1>A PyTorch column network, rebuilt in Lux, checked to machine precision</h1>
+  <p class="lede">Seven figures drawn from the committed acceptance reports. The network is a paper-inspired atmospheric column MLP, 420 → 512 → 512 → 512 → 512 → 412 with tanh hidden layers and 1,214,876 parameters. Every point is a maximum absolute difference between the Lux implementation and the PyTorch reference on identical arrays.</p>
+  <div class="meta"><span>torch 2.14.0</span><span>Julia 1.12.7</span><span>Lux 1.31.4</span><span>Reactant 0.2.285</span><span>Enzyme 0.13.202</span><span>Apple M5 Max, CPU</span></div>
+</header>
+
+<div class="verdicts" id="verdicts"></div>
+
+<figure>
+  <h2>Layer by layer, the forward pass sits at the precision floor</h2>
+  <div class="sub">Maximum absolute difference at each stage of the full model, batch 64. Horizontal rules mark machine epsilon for each precision.</div>
+  <div class="legend"><span><i class="sw f64"></i>Float64</span><span><i class="sw f32"></i>Float32</span><span><i class="sw line gray"></i>ε, machine epsilon</span></div>
+  <div class="chart" id="fig-stages"></div>
+  <figcaption><strong>Reading.</strong> Errors are a few ε and shrink through the tanh layers rather than grow. The first affine layer, with the largest inner dimension, carries the largest rounding. The last row is the model output.</figcaption>
+  <details><summary>table</summary><div id="tab-stages"></div></details>
+</figure>
+
+<figure>
+  <h2>Agreement holds across the declared input domain, not just one batch</h2>
+  <div class="sub">Maximum absolute output difference for each of the 18 input families the PyTorch side exported: sentinels, scale sweeps, batch sizes, and reshuffled reference batches.</div>
+  <div class="legend"><span><i class="sw f64"></i>Float64</span><span><i class="sw f32"></i>Float32</span><span><i class="sw line gray"></i>ε</span></div>
+  <div class="chart" id="fig-domain"></div>
+  <figcaption><strong>Reading.</strong> Inputs a thousand times larger than the training scale saturate every tanh and still agree to a few ε. Batch size does not move the error, which is the column-independence property a parameterization needs.</figcaption>
+  <details><summary>table</summary><div id="tab-domain"></div></details>
+</figure>
+
+<figure>
+  <h2>Three Julia AD paths give the same derivatives as PyTorch autograd</h2>
+  <div class="sub">Maximum absolute difference of input gradients, parameter gradients, and vector-Jacobian products with a shared cotangent, for Zygote, native Enzyme, and Reactant + Enzyme.</div>
+  <div class="legend"><span><i class="sw f64"></i>Float64</span><span><i class="sw f32"></i>Float32</span><span>○ Zygote &nbsp;□ Enzyme &nbsp;△ Reactant+Enzyme</span></div>
+  <div class="chart" id="fig-deriv"></div>
+  <figcaption><strong>Reading.</strong> The three markers for each quantity overlap: Zygote and Enzyme produce bit-identical results on the same kernels, and the compiled Reactant path lands within one rounding of them. Gradients of the mean-squared loss are small numbers, so their absolute errors sit far below ε; the VJPs with an O(1) cotangent show the honest scale.</figcaption>
+  <details><summary>table</summary><div id="tab-deriv"></div></details>
+</figure>
+
+<figure>
+  <h2>Finite differences converge to the analytic derivative, then roundoff takes over</h2>
+  <div class="sub">Absolute error of the central difference against the AD directional derivative, swept over step size h, in the fixture's input direction and parameter direction.</div>
+  <div class="legend"><span><i class="sw f64"></i>Float64</span><span><i class="sw f32"></i>Float32</span><span>— input direction &nbsp;- - parameter direction</span></div>
+  <div class="chart" id="fig-fd"></div>
+  <figcaption><strong>Reading.</strong> The V shape is the signature of a correct derivative: truncation error falls as h² on the right, roundoff rises on the left, and the minimum is where a wrong gradient could not hide. Float32 needs steps a thousand times larger and bottoms out a million times higher, as expected.</figcaption>
+  <details><summary>table</summary><div id="tab-fd"></div></details>
+</figure>
+
+<figure>
+  <h2>One optimizer step matches, except where Float32 Adam divides by nearly zero</h2>
+  <div class="sub">Maximum absolute difference of the parameter update, per block, for one SGD step and one Adam step in Float32. Weight blocks fail the frozen tolerance on a handful of components each; the count is printed.</div>
+  <div class="legend"><span><i class="sw gray"></i>SGD update</span><span><i class="sw f32"></i>Adam update, all components pass</span><span><i class="sw crit"></i>Adam update, with failing components</span><span><i class="sw line gray"></i>ε₃₂</span></div>
+  <div class="chart" id="fig-train"></div>
+  <figcaption><strong>Reading.</strong> SGD updates agree to one Float32 ulp of the weights. Adam's first step is lr·g/(|g|+ε) with ε = 10⁻⁸, so wherever |g| is within a thousand ε the tiniest rounding of g moves the update at order one. All 102 failing components are of that kind, and feeding PyTorch's exact gradients into Optimisers.Adam reproduces its update to 3.7e-9. In Float64 the same step passes at 1.7e-14. The run is recorded as not accepted rather than the bar being loosened.</figcaption>
+  <details><summary>table</summary><div id="tab-train"></div></details>
+</figure>
+
+<figure>
+  <h2>Injected mistakes land orders of magnitude above the bar</h2>
+  <div class="sub">Maximum absolute difference produced by four deliberate defects, alongside the genuine Float32 forward error and the Float32 tolerance, on one axis.</div>
+  <div class="legend"><span><i class="sw crit"></i>Injected defect</span><span><i class="sw f32"></i>Genuine Float32 port</span><span><i class="sw line gray"></i>tolerance (atol 1e-6)</span></div>
+  <div class="chart" id="fig-defects"></div>
+  <figcaption><strong>Reading.</strong> A swapped feature order, a zeroed bias, a wrong loss denominator, and a detached input gradient are each separated from a correct port by four to eight decades. The harness catches what it claims to catch; a fifth defect, an incomplete parameter mapping, raises before any number is computed.</figcaption>
+</figure>
+
+<figure>
+  <h2>Compilation is the cost; execution is not</h2>
+  <div class="sub">Wall-clock seconds for the full model, batch 64, Float64. First call includes compilation or JIT; warm call is a second invocation with the same shapes. Log scale.</div>
+  <div class="legend"><span><i class="sw gray"></i>First call</span><span><i class="sw f64"></i>Warm call</span></div>
+  <div class="chart" id="fig-timing"></div>
+  <figcaption><strong>Reading.</strong> Reactant spends 13 seconds compiling the gradient and then evaluates it in 2 milliseconds; the compiled training step pays 26 seconds once. Native Enzyme has almost no warm-up on a model this size. Host-transfer synchronization is inside every Reactant timing.</figcaption>
+  <details><summary>table</summary><div id="tab-timing"></div></details>
+</figure>
+
+<section class="notes">
+  <div class="eyebrow">Provenance</div>
+  <p>Source reports: <code>docs/results/2026-09-10/column_mlp_{tiny,full}_{float64,float32}.json</code> in glwagner/Torchlight.jl, generated by <code>cases/column_mlp/validate.jl</code> from fixtures whose SHA-256 hashes are in <code>fixtures_MANIFEST.json</code>. Tolerances: Float64 atol 1e-10, rtol 1e-8; Float32 atol 1e-6, rtol 1e-4, scale-aware for derivative arrays. The PyTorch model is an independent reconstruction after Farchi et al. 2025, not the authors' code.</p>
+</section>
+</main>
+<script>
+const D = {"summary": {"tiny_float64": {"failed": 0, "not_tested": 0, "passed": 71, "unsupported": 1}, "tiny_float32": {"failed": 0, "not_tested": 0, "passed": 71, "unsupported": 1}, "full_float64": {"failed": 0, "not_tested": 0, "passed": 75, "unsupported": 1}, "full_float32": {"failed": 3, "not_tested": 0, "passed": 73, "unsupported": 1}}, "stages": {"labels": ["layer0_preact", "layer0_act", "layer1_preact", "layer1_act", "layer2_preact", "layer2_act", "layer3_preact", "layer3_act", "layer4_preact"], "f64": [3.774758283725532e-15, 1.7763568394002505e-15, 2.1094237467877974e-15, 1.5543122344752192e-15, 1.5543122344752192e-15, 1.1657341758564144e-15, 7.771561172376096e-16, 7.216449660063518e-16, 4.579669976578771e-16], "f32": [9.5367431640625e-07, 5.066394805908203e-07, 6.556510925292969e-07, 5.364418029785156e-07, 5.364418029785156e-07, 4.76837158203125e-07, 3.2782554626464844e-07, 3.2782554626464844e-07, 2.430751919746399e-07]}, "domain": {"labels": ["zeros (batch 1)", "ones (1)", "constant \u22122 (4)", "feature basis (420)", "ramp \u22121\u20261 (3)", "gaussian \u00d70.01 (8)", "gaussian \u00d71 (8)", "gaussian \u00d710 (8)", "gaussian \u00d7100 (8)", "gaussian \u00d71000 (2)", "gaussian, batch 1", "gaussian, batch 2", "gaussian, batch 7", "gaussian, batch 32", "gaussian, batch 256", "permuted reference batch (64)", "reference batch, first half (32)", "reference batch, second half (32)"], "f64": [2.0816681711721685e-16, 2.7755575615628914e-16, 4.440892098500626e-16, 3.191891195797325e-16, 3.0531133177191805e-16, 2.0816681711721685e-16, 4.163336342344337e-16, 5.551115123125783e-16, 8.604228440844963e-16, 1.0269562977782698e-15, 2.706168622523819e-16, 3.400058012914542e-16, 3.608224830031759e-16, 4.440892098500626e-16, 5.828670879282072e-16, 6.106226635438361e-16, 4.440892098500626e-16, 6.106226635438361e-16], "f32": [7.450580596923828e-08, 1.7881393432617188e-07, 2.1606683731079102e-07, 1.862645149230957e-07, 1.862645149230957e-07, 1.1920928955078125e-07, 2.2351741790771484e-07, 3.129243850708008e-07, 3.2782554626464844e-07, 3.8743019104003906e-07, 1.2759119272232056e-07, 1.9371509552001953e-07, 2.8312206268310547e-07, 2.5331974029541016e-07, 2.905726432800293e-07, 2.4586915969848633e-07, 2.4586915969848633e-07, 2.2351741790771484e-07], "scale64": [0.09345037206538317, 0.15442017371735206, 0.23035758894144764, 0.10274827173264052, 0.14720730293945278, 0.09392109946031107, 0.2181862582187876, 0.3041553984770701, 0.31357511008662814, 0.25189256177041675, 0.18322731880652637, 0.1772292613412401, 0.2067848060740546, 0.22716003101185028, 0.2786371658372479, 0.24556301690892543, 0.24556301690892543, 0.2236634124402755]}, "deriv": {"grad_input": {"zygote": {"f64": 3.3881317890172014e-20, "f32": 1.7280399333685637e-11}, "enzyme": {"f64": 3.3881317890172014e-20, "f32": 1.7280399333685637e-11}, "reactant": {"f64": 3.7269449679189215e-20, "f32": 1.546140993013978e-11}}, "grad_params": {"zygote": {"f64": 1.3010426069826053e-18, "f32": 5.820766091346741e-10}, "enzyme": {"f64": 1.3010426069826053e-18, "f32": 5.820766091346741e-10}, "reactant": {"f64": 4.87890977618477e-19, "f32": 2.9103830456733704e-10}}, "vjp_input": {"zygote": {"f64": 4.996003610813204e-16, "f32": 1.4901161193847656e-07}, "enzyme": {"f64": 4.996003610813204e-16, "f32": 1.4901161193847656e-07}, "reactant": {"f64": 3.0531133177191805e-16, "f32": 1.7881393432617188e-07}}, "vjp_params": {"zygote": {"f64": 1.1546319456101628e-14, "f32": 3.814697265625e-06}, "enzyme": {"f64": 1.1546319456101628e-14, "f32": 3.814697265625e-06}, "reactant": {"f64": 1.0658141036401503e-14, "f32": 3.4570693969726562e-06}}}, "fd": {"f64_input": [[0.001, 0.0006614414478356423, 1.544881176110402e-10], [0.0001, 0.0006614416003802859, 1.94347402754369e-12], [1e-05, 0.0006614416014905089, 8.332510029185336e-13], [1e-06, 0.0006614415681838182, 3.413994174167323e-11], [1e-07, 0.0006614409020500034, 7.002737565167672e-10]], "f64_params": [[0.001, -0.03827811033618733, 0.00020682052639975357], [0.0001, -0.03807335902106246, 2.069211274879912e-06], [1e-05, -0.0380713105041508, 2.0694363223050516e-08], [1e-06, -0.03807129000943377, 1.9964618847012616e-10], [1e-07, -0.038071289454322255, 3.554653238424521e-10]], "f32_input": [[0.1, 0.0009295344352722168, 8.847564458847046e-08], [0.03, 0.0009288390865549445, 7.838243618607521e-07], [0.01, 0.0009298324584960938, 2.0954757928848267e-07], [0.003, 0.0009238719940185547, 5.75091689825058e-06], [0.001, 0.0009238719358108938, 5.750975105911493e-06]], "f32_params": [[0.1, -0.3325796127319336, 0.2978103272616863], [0.03, -0.16817252337932587, 0.1334032379090786], [0.01, -0.05675554275512695, 0.021986257284879684], [0.003, -0.036845605820417404, 0.0020763203501701355], [0.001, -0.03504753112792969, 0.0002782456576824188]]}, "training": {"blocks": ["layers.0.weight", "layers.0.bias", "layers.1.weight", "layers.1.bias", "layers.2.weight", "layers.2.bias", "layers.3.weight", "layers.3.bias", "layers.4.weight", "layers.4.bias"], "sgd32": [3.725290298461914e-09, 1.8189894035458565e-12, 3.725290298461914e-09, 1.1641532182693481e-10, 3.725290298461914e-09, 9.313225746154785e-10, 3.725290298461914e-09, 1.862645149230957e-09, 3.725290298461914e-09, 4.656612873077393e-10], "adam32": [4.135072231292725e-06, 1.5832483768463135e-08, 2.773478627204895e-06, 3.725290298461914e-09, 3.5017728805541992e-06, 3.725290298461914e-09, 6.865710020065308e-06, 3.725290298461914e-09, 5.1371753215789795e-06, 3.5390257835388184e-08], "adam32_fail": [15, 0, 20, 0, 20, 0, 18, 0, 29, 0], "adam64": 1.7081605227509122e-14, "sgd64": 6.938893903907228e-18}, "defects": {"permuted_features": 0.2673, "missing_bias": 0.009526, "wrong_loss_denominator": 410.5, "detached_input_gradient": 1.575e-05}, "timings": {"f64": {"forward_plain_first": 0.11052298545837402, "forward_plain_warm": 0.0010678768157958984, "forward_reactant_compile": 1.2649638652801514, "forward_reactant_run_sync_first": 0.028620004653930664, "forward_reactant_run_sync_warm": 0.0009050369262695312, "grad_enzyme_first_total": 0.08846688270568848, "grad_enzyme_warm": 0.008224964141845703, "grad_reactant_compile": 13.12834119796753, "grad_reactant_first_total": 13.615090131759644, "grad_reactant_run_sync_first": 0.22307085990905762, "grad_reactant_run_sync_warm": 0.0023810863494873047, "grad_zygote_first_total": 4.753576040267944, "grad_zygote_warm": 0.0033080577850341797, "setup_and_mapping": 0.9649460315704346, "train_step_reactant_first_total": 25.583641052246094}, "f32": {"forward_plain_first": 0.10470104217529297, "forward_plain_warm": 0.0004978179931640625, "forward_reactant_compile": 1.3196349143981934, "forward_reactant_run_sync_first": 0.030363082885742188, "forward_reactant_run_sync_warm": 0.0006840229034423828, "grad_enzyme_first_total": 0.093505859375, "grad_enzyme_warm": 0.006536960601806641, "grad_reactant_compile": 14.1391761302948, "grad_reactant_first_total": 14.678122997283936, "grad_reactant_run_sync_first": 0.24278688430786133, "grad_reactant_run_sync_warm": 0.0017590522766113281, "grad_zygote_first_total": 4.858570098876953, "grad_zygote_warm": 0.002228975296020508, "setup_and_mapping": 0.9668769836425781, "train_step_reactant_first_total": 27.597562074661255}}};
+const EPS64 = 2.220446049250313e-16, EPS32 = 1.1920928955078125e-7;
+const $ = (id) => document.getElementById(id);
+const fmt = (x) => x === 0 ? "0" : x.toExponential(2).replace("e-", "e−").replace("e+", "e");
+const svgEl = (n, a = {}) => { const e = document.createElementNS("http://www.w3.org/2000/svg", n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+function tooltip(container) {
+  const t = document.createElement("div"); t.className = "tip"; container.appendChild(t);
+  return { show(ev, html) { t.innerHTML = html; t.style.opacity = 1; const r = container.getBoundingClientRect(); t.style.left = (ev.clientX - r.left + 14) + "px"; t.style.top = (ev.clientY - r.top - 10) + "px"; }, hide() { t.style.opacity = 0; } };
+}
+// log axis helpers
+function logTicks(lo, hi) { const out = []; for (let e = Math.ceil(Math.log10(lo)); e <= Math.floor(Math.log10(hi)); e++) out.push(Math.pow(10, e)); return out; }
+const expLabel = (v) => { const e = Math.round(Math.log10(v)); return e === 0 ? "1" : "10" + String(e).replace("-", "⁻").replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]); };
+
+// ---- verdict tiles ----
+{
+  const order = [["tiny_float64", "tiny, Float64"], ["tiny_float32", "tiny, Float32"], ["full_float64", "full, Float64"], ["full_float32", "full, Float32"]];
+  for (const [k, name] of order) {
+    const s = D.summary[k]; const ok = s.failed === 0;
+    const el = document.createElement("div"); el.className = "tile";
+    el.innerHTML = `<div class="name">${name}</div><div class="value">${s.passed}<span style="font-size:14px;font-weight:500;color:var(--muted)"> passed</span></div><div class="counts">${s.failed} failed · ${s.unsupported} unsupported · ${s.not_tested} not tested</div><span class="pill ${ok ? "" : "fail"}">${ok ? "accepted" : "not accepted"}</span>`;
+    $("verdicts").appendChild(el);
+  }
+}
+
+// ---- generic horizontal log dot chart (domain, deriv, defects) ----
+function hLogChart(container, rows, opts) {
+  // rows: [{label, marks:[{v, cls, shape, tip}], fails?}], opts: {lo, hi, refs:[{v,label,cls}], rowH}
+  const W = 860, L = opts.labelW || 250, R = 20, T = 18, rowH = opts.rowH || 22, B = 34;
+  const H = T + rows.length * rowH + B, PW = W - L - R;
+  const x = (v) => L + (Math.log10(v) - Math.log10(opts.lo)) / (Math.log10(opts.hi) - Math.log10(opts.lo)) * PW;
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}` });
+  const ticks = logTicks(opts.lo, opts.hi), step = Math.max(1, Math.ceil(ticks.length / 9));
+  ticks.forEach((t, i) => {
+    svg.appendChild(svgEl("line", { x1: x(t), x2: x(t), y1: T, y2: H - B, class: "grid" }));
+    if ((ticks.length - 1 - i) % step) return;
+    const tx = svgEl("text", { x: x(t), y: H - B + 16, "text-anchor": "middle" }); tx.textContent = expLabel(t); svg.appendChild(tx);
+  });
+  for (const r of opts.refs || []) {
+    svg.appendChild(svgEl("line", { x1: x(r.v), x2: x(r.v), y1: T - 6, y2: H - B, class: r.cls || "eps" }));
+    const tx = svgEl("text", { x: x(r.v), y: T - 8, "text-anchor": "middle", class: "t2" }); tx.textContent = r.label; svg.appendChild(tx);
+  }
+  const tip = tooltip(container);
+  rows.forEach((row, i) => {
+    const y = T + i * rowH + rowH / 2;
+    const lab = svgEl("text", { x: L - 10, y: y + 4, "text-anchor": "end", class: "t2" }); lab.textContent = row.label; svg.appendChild(lab);
+    svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: y, y2: y, class: "grid" }));
+    for (const m of row.marks) {
+      const cx = x(m.v);
+      let mark;
+      if (m.shape === "sq") mark = svgEl("rect", { x: cx - 5, y: y - 5, width: 10, height: 10, class: "dot " + m.cls });
+      else if (m.shape === "tri") mark = svgEl("path", { d: `M${cx},${y - 6.5} L${cx + 6},${y + 4.5} L${cx - 6},${y + 4.5} Z`, class: "dot " + m.cls });
+      else mark = svgEl("circle", { cx, cy: y, r: 5, class: "dot " + m.cls });
+      svg.appendChild(mark);
+      const hit = svgEl("circle", { cx, cy: y, r: 11, class: "hit" });
+      hit.addEventListener("mousemove", (ev) => tip.show(ev, m.tip)); hit.addEventListener("mouseleave", tip.hide);
+      svg.appendChild(hit);
+    }
+    if (row.note) { const n = svgEl("text", { x: W - R, y: y + 4, "text-anchor": "end", class: "t2" }); n.textContent = row.note; svg.appendChild(n); }
+  });
+  svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "axis" }));
+  const xl = svgEl("text", { x: L + PW / 2, y: H - 4, "text-anchor": "middle" }); xl.textContent = opts.xlabel || "maximum absolute difference"; svg.appendChild(xl);
+  container.appendChild(svg);
+}
+function table(container, head, rows) {
+  const t = document.createElement("table"); t.innerHTML = "<tr>" + head.map(h => `<th>${h}</th>`).join("") + "</tr>" + rows.map(r => "<tr>" + r.map((c, i) => `<td>${i ? fmt(c) : c}</td>`).join("") + "</tr>").join("");
+  container.appendChild(t);
+}
+
+// ---- Figure 1: stages (vertical log line chart) ----
+{
+  const S = D.stages, W = 860, H = 330, L = 64, R = 24, T = 20, B = 58, PW = W - L - R, PH = H - T - B;
+  const lo = 1e-17, hi = 1e-5;
+  const x = (i) => L + (i + 0.5) / S.labels.length * PW;
+  const y = (v) => T + (Math.log10(hi) - Math.log10(v)) / (Math.log10(hi) - Math.log10(lo)) * PH;
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}` });
+  for (const t of logTicks(lo, hi)) {
+    if (Math.round(Math.log10(t)) % 2) continue;
+    svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "grid" }));
+    const tx = svgEl("text", { x: L - 8, y: y(t) + 4, "text-anchor": "end" }); tx.textContent = expLabel(t); svg.appendChild(tx);
+  }
+  for (const [v, lab] of [[EPS64, "ε₆₄"], [EPS32, "ε₃₂"]]) {
+    svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: "eps" }));
+    const tx = svgEl("text", { x: W - R, y: y(v) - 5, "text-anchor": "end", class: "t2" }); tx.textContent = lab; svg.appendChild(tx);
+  }
+  const tip = tooltip($("fig-stages"));
+  const pretty = (s) => s.replace("layer", "layer ").replace("_preact", " affine").replace("_act", " tanh");
+  for (const [key, cls] of [["f64", "f64"], ["f32", "f32"]]) {
+    const pts = S[key].map((v, i) => [x(i), y(v)]);
+    svg.appendChild(svgEl("path", { d: "M" + pts.map(p => p.join(",")).join(" L"), class: "line " + cls }));
+    pts.forEach(([px, py], i) => {
+      svg.appendChild(svgEl("circle", { cx: px, cy: py, r: 4.5, class: "dot " + cls }));
+      const hit = svgEl("circle", { cx: px, cy: py, r: 12, class: "hit" });
+      hit.addEventListener("mousemove", (ev) => tip.show(ev, `${pretty(S.labels[i])} · ${key === "f64" ? "Float64" : "Float32"}<br>max abs diff ${fmt(S[key][i])}`)); hit.addEventListener("mouseleave", tip.hide);
+      svg.appendChild(hit);
+    });
+    const last = pts[pts.length - 1];
+    const el = svgEl("text", { x: last[0] + 10, y: last[1] + 4, class: "t2" }); el.textContent = fmt(S[key][S[key].length - 1]); svg.appendChild(el);
+  }
+  S.labels.forEach((s, i) => {
+    const t1 = svgEl("text", { x: x(i), y: H - B + 18, "text-anchor": "middle", class: "t2" }); t1.textContent = pretty(s).split(" ").slice(0, 2).join(" ");
+    const t2 = svgEl("text", { x: x(i), y: H - B + 32, "text-anchor": "middle" }); t2.textContent = pretty(s).split(" ")[2] + (i === S.labels.length - 1 ? " = output" : "");
+    svg.appendChild(t1); svg.appendChild(t2);
+  });
+  svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "axis" }));
+  const yl = svgEl("text", { x: 12, y: T + PH / 2, transform: `rotate(-90 12 ${T + PH / 2})`, "text-anchor": "middle" }); yl.textContent = "maximum absolute difference"; svg.appendChild(yl);
+  $("fig-stages").appendChild(svg);
+  table($("tab-stages"), ["stage", "Float64", "Float32"], S.labels.map((s, i) => [pretty(s), S.f64[i], S.f32[i]]));
+}
+
+// ---- Figure 2: domain ----
+{
+  const Dm = D.domain;
+  hLogChart($("fig-domain"), Dm.labels.map((l, i) => ({ label: l, marks: [
+    { v: Dm.f64[i], cls: "f64", tip: `${l} · Float64<br>max abs diff ${fmt(Dm.f64[i])}<br>output scale ${fmt(Dm.scale64[i])}` },
+    { v: Dm.f32[i], cls: "f32", tip: `${l} · Float32<br>max abs diff ${fmt(Dm.f32[i])}` }] })),
+    { lo: 1e-17, hi: 1e-5, labelW: 240, refs: [{ v: EPS64, label: "ε₆₄" }, { v: EPS32, label: "ε₃₂" }] });
+  table($("tab-domain"), ["input family", "Float64", "Float32", "output scale"], Dm.labels.map((l, i) => [l, Dm.f64[i], Dm.f32[i], Dm.scale64[i]]));
+}
+
+// ---- Figure 3: derivatives across backends ----
+{
+  const Dv = D.deriv, names = { grad_input: "∂L/∂x, mean-squared loss", grad_params: "∂L/∂θ, mean-squared loss", vjp_input: "Jᵀv on inputs, O(1) cotangent", vjp_params: "Jᵀv on parameters, O(1) cotangent" };
+  const shapes = { zygote: "circle", enzyme: "sq", reactant: "tri" }, bn = { zygote: "Zygote", enzyme: "native Enzyme", reactant: "Reactant + Enzyme" };
+  const rows = [];
+  for (const m of Object.keys(names)) rows.push({ label: names[m], marks: [].concat(...["f64", "f32"].map(k => ["zygote", "enzyme", "reactant"].map(b => ({ v: Dv[m][b][k], cls: k, shape: shapes[b], tip: `${names[m]}<br>${bn[b]} · ${k === "f64" ? "Float64" : "Float32"}<br>max abs diff ${fmt(Dv[m][b][k])}` })))) });
+  hLogChart($("fig-deriv"), rows, { lo: 1e-21, hi: 1e-4, labelW: 260, rowH: 34, refs: [{ v: EPS64, label: "ε₆₄" }, { v: EPS32, label: "ε₃₂" }] });
+  table($("tab-deriv"), ["quantity", "Zygote F64", "Enzyme F64", "Reactant F64", "Zygote F32", "Enzyme F32", "Reactant F32"], Object.keys(names).map(m => [names[m], Dv[m].zygote.f64, Dv[m].enzyme.f64, Dv[m].reactant.f64, Dv[m].zygote.f32, Dv[m].enzyme.f32, Dv[m].reactant.f32]));
+}
+
+// ---- Figure 4: finite-difference sweep (log-log lines) ----
+{
+  const F = D.fd, W = 860, H = 330, L = 64, R = 24, T = 20, B = 46, PW = W - L - R, PH = H - T - B;
+  const xlo = 1e-8, xhi = 1, ylo = 1e-13, yhi = 1;
+  const x = (h) => L + (Math.log10(h) - Math.log10(xlo)) / (Math.log10(xhi) - Math.log10(xlo)) * PW;
+  const y = (v) => T + (Math.log10(yhi) - Math.log10(v)) / (Math.log10(yhi) - Math.log10(ylo)) * PH;
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}` });
+  for (const t of logTicks(ylo, yhi)) { if (Math.round(Math.log10(t)) % 2) continue; svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "grid" })); const tx = svgEl("text", { x: L - 8, y: y(t) + 4, "text-anchor": "end" }); tx.textContent = expLabel(t); svg.appendChild(tx); }
+  for (const t of logTicks(xlo, xhi)) { svg.appendChild(svgEl("line", { x1: x(t), x2: x(t), y1: T, y2: H - B, class: "grid" })); const tx = svgEl("text", { x: x(t), y: H - B + 16, "text-anchor": "middle" }); tx.textContent = expLabel(t); svg.appendChild(tx); }
+  const tip = tooltip($("fig-fd"));
+  const series = [["f64_input", "f64", "", "Float64, input direction"], ["f64_params", "f64", "6 5", "Float64, parameter direction"], ["f32_input", "f32", "", "Float32, input direction"], ["f32_params", "f32", "6 5", "Float32, parameter direction"]];
+  for (const [k, cls, dash, name] of series) {
+    const pts = F[k].map(([h, fd, err]) => [x(h), y(Math.max(err, ylo)), h, fd, err]).sort((a, b) => a[0] - b[0]);
+    const p = svgEl("path", { d: "M" + pts.map(q => q[0] + "," + q[1]).join(" L"), class: "line " + cls }); if (dash) p.setAttribute("stroke-dasharray", dash); svg.appendChild(p);
+    for (const q of pts) {
+      svg.appendChild(svgEl("circle", { cx: q[0], cy: q[1], r: 4.5, class: "dot " + cls }));
+      const hit = svgEl("circle", { cx: q[0], cy: q[1], r: 12, class: "hit" });
+      hit.addEventListener("mousemove", (ev) => tip.show(ev, `${name}<br>h = ${q[2]} · FD ${fmt(q[3])}<br>|FD − AD| = ${fmt(q[4])}`)); hit.addEventListener("mouseleave", tip.hide);
+      svg.appendChild(hit);
+    }
+  }
+  svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "axis" }));
+  const xl = svgEl("text", { x: L + PW / 2, y: H - 4, "text-anchor": "middle" }); xl.textContent = "finite-difference step h"; svg.appendChild(xl);
+  const yl = svgEl("text", { x: 12, y: T + PH / 2, transform: `rotate(-90 12 ${T + PH / 2})`, "text-anchor": "middle" }); yl.textContent = "|central difference − AD|"; svg.appendChild(yl);
+  $("fig-fd").appendChild(svg);
+  const rows = []; for (const [k, , , name] of series) for (const [h, fd, err] of F[k]) rows.push([name + ", h=" + h, fd, err]);
+  table($("tab-fd"), ["series", "finite difference", "abs error vs AD"], rows);
+}
+
+// ---- Figure 5: training per block (horizontal bars, log x) ----
+{
+  const Tr = D.training, W = 860, L = 150, R = 60, T = 18, B = 34, rowH = 30, H = T + Tr.blocks.length * rowH + B, PW = W - L - R;
+  const lo = 1e-13, hi = 1e-4;
+  const x = (v) => L + (Math.log10(Math.max(v, lo)) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * PW;
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}` });
+  for (const t of logTicks(lo, hi)) { svg.appendChild(svgEl("line", { x1: x(t), x2: x(t), y1: T, y2: H - B, class: "grid" })); const tx = svgEl("text", { x: x(t), y: H - B + 16, "text-anchor": "middle" }); tx.textContent = expLabel(t); svg.appendChild(tx); }
+  svg.appendChild(svgEl("line", { x1: x(EPS32), x2: x(EPS32), y1: T - 6, y2: H - B, class: "eps" }));
+  const e = svgEl("text", { x: x(EPS32), y: T - 8, "text-anchor": "middle", class: "t2" }); e.textContent = "ε₃₂"; svg.appendChild(e);
+  const tip = tooltip($("fig-train"));
+  Tr.blocks.forEach((b, i) => {
+    const y0 = T + i * rowH;
+    const lab = svgEl("text", { x: L - 10, y: y0 + rowH / 2 + 4, "text-anchor": "end", class: "t2" }); lab.textContent = b; svg.appendChild(lab);
+    const bars = [[Tr.sgd32[i], "bar sgd", "SGD"], [Tr.adam32[i], Tr.adam32_fail[i] ? "bar barfail" : "bar f32", "Adam"]];
+    bars.forEach(([v, cls, nm], j) => {
+      const yb = y0 + 3 + j * 12, w = Math.max(x(v) - L, 0);
+      const r = svgEl("path", { d: `M${L},${yb} H${L + w - 4} a4,4 0 0 1 4,4 v2 a4,4 0 0 1 -4,4 H${L} Z`, class: cls }); svg.appendChild(r);
+      const hit = svgEl("rect", { x: L, y: yb - 2, width: Math.max(w, 6) + 4, height: 14, class: "hit" });
+      hit.addEventListener("mousemove", (ev) => tip.show(ev, `${b} · ${nm} update, Float32<br>max abs diff ${fmt(v)}` + (nm === "Adam" && Tr.adam32_fail[i] ? `<br>${Tr.adam32_fail[i]} components fail` : ""))); hit.addEventListener("mouseleave", tip.hide);
+      svg.appendChild(hit);
+      if (nm === "Adam" && Tr.adam32_fail[i]) { const n = svgEl("text", { x: L + w + 8, y: yb + 9, class: "t2" }); n.textContent = Tr.adam32_fail[i] + " fail"; svg.appendChild(n); }
+    });
+  });
+  svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "axis" }));
+  const xl = svgEl("text", { x: L + PW / 2, y: H - 4, "text-anchor": "middle" }); xl.textContent = "maximum absolute difference of the parameter update, Float32"; svg.appendChild(xl);
+  $("fig-train").appendChild(svg);
+  table($("tab-train"), ["block", "SGD F32", "Adam F32", "Adam F32 failing components"], Tr.blocks.map((b, i) => [b, Tr.sgd32[i], Tr.adam32[i], Tr.adam32_fail[i]]));
+}
+
+// ---- Figure 6: defects ----
+{
+  const Df = D.defects, genuine = D.stages.f32[D.stages.f32.length - 1];
+  const rows = [["wrong loss denominator", Df.wrong_loss_denominator], ["swapped feature order", Df.permuted_features], ["zeroed first-layer bias", Df.missing_bias], ["detached input gradient", Df.detached_input_gradient]].map(([l, v]) => ({ label: l, marks: [{ v, cls: "barfail", tip: `${l}<br>max abs diff ${fmt(v)}` }] }));
+  rows.push({ label: "genuine Float32 port (output)", marks: [{ v: genuine, cls: "f32", tip: `genuine Float32 forward error<br>max abs diff ${fmt(genuine)}` }] });
+  hLogChart($("fig-defects"), rows, { lo: 1e-8, hi: 1e3, labelW: 250, rowH: 30, refs: [{ v: 1e-6, label: "atol₃₂", cls: "tol" }] });
+}
+
+// ---- Figure 7: timings ----
+{
+  const Tm = D.timings.f64;
+  const items = [["plain Lux forward", Tm.forward_plain_first, Tm.forward_plain_warm], ["Zygote gradient", Tm.grad_zygote_first_total, Tm.grad_zygote_warm], ["native Enzyme gradient", Tm.grad_enzyme_first_total, Tm.grad_enzyme_warm], ["Reactant forward (compile + run)", Tm.forward_reactant_compile + Tm.forward_reactant_run_sync_first, Tm.forward_reactant_run_sync_warm], ["Reactant + Enzyme gradient (compile + run)", Tm.grad_reactant_first_total, Tm.grad_reactant_run_sync_warm], ["Reactant compiled training step", Tm.train_step_reactant_first_total, null]];
+  const W = 860, L = 300, R = 70, T = 12, B = 34, rowH = 30, H = T + items.length * rowH + B, PW = W - L - R, lo = 1e-4, hi = 1e2;
+  const x = (v) => L + (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * PW;
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}` });
+  for (const t of logTicks(lo, hi)) { svg.appendChild(svgEl("line", { x1: x(t), x2: x(t), y1: T, y2: H - B, class: "grid" })); const tx = svgEl("text", { x: x(t), y: H - B + 16, "text-anchor": "middle" }); tx.textContent = t >= 1 ? t + " s" : (t * 1000) + " ms"; svg.appendChild(tx); }
+  const tip = tooltip($("fig-timing"));
+  items.forEach(([name, first, warm], i) => {
+    const y0 = T + i * rowH;
+    const lab = svgEl("text", { x: L - 10, y: y0 + rowH / 2 + 4, "text-anchor": "end", class: "t2" }); lab.textContent = name; svg.appendChild(lab);
+    [[first, "gray", "first call"], [warm, "f64", "warm call"]].forEach(([v, cls, nm], j) => {
+      if (v == null) { if (j === 1) { const n = svgEl("text", { x: L + 4, y: y0 + 3 + 12 + 9 }); n.textContent = "warm call not measured"; svg.appendChild(n); } return; }
+      const yb = y0 + 3 + j * 12, w = x(v) - L;
+      const r = svgEl("path", { d: `M${L},${yb} H${L + w - 4} a4,4 0 0 1 4,4 v2 a4,4 0 0 1 -4,4 H${L} Z`, class: "bar" }); r.style.fill = cls === "gray" ? "var(--gray-mark)" : "var(--f64)"; svg.appendChild(r);
+      const hit = svgEl("rect", { x: L, y: yb - 2, width: w + 4, height: 14, class: "hit" });
+      hit.addEventListener("mousemove", (ev) => tip.show(ev, `${name} · ${nm}<br>${v >= 1 ? v.toFixed(2) + " s" : (v * 1000).toFixed(1) + " ms"}`)); hit.addEventListener("mouseleave", tip.hide);
+      svg.appendChild(hit);
+      const n = svgEl("text", { x: L + w + 6, y: yb + 9, class: "t2" }); n.textContent = v >= 1 ? v.toFixed(1) + " s" : (v * 1000).toFixed(1) + " ms"; svg.appendChild(n);
+    });
+  });
+  svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "axis" }));
+  const xl = svgEl("text", { x: L + PW / 2, y: H - 4, "text-anchor": "middle" }); xl.textContent = "wall-clock time, log scale"; svg.appendChild(xl);
+  $("fig-timing").appendChild(svg);
+  table($("tab-timing"), ["step", "first call (s)", "warm call (s)"], items.map(([n, a, b]) => [n, a, b == null ? NaN : b]));
+}
+</script>
+</body>
+</html>
